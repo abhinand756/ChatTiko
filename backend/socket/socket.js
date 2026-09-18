@@ -29,7 +29,9 @@ const isOriginAllowed = (origin) => {
 };
 
 const server = http.createServer(app);
+const SOCKET_PATH = process.env.SOCKETIO_PATH || "/socket.io";
 const io = new Server(server, {
+  path: SOCKET_PATH,
   cors: {
     origin: (origin, callback) => callback(null, isOriginAllowed(origin)),
     methods: ["GET", "POST"],

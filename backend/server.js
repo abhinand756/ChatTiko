@@ -11,6 +11,8 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 
 import { app, server, isOriginAllowed } from "./socket/socket.js";
+import connectDB from "./db.js";
+import { saveUploadedFile, deleteUploadedFile } from "./utils/uploads.js";
 import User from "./models/User.js";
 import Message from "./models/Message.js";
 import ConnectionRequest from "./models/ConnectionRequest.js";
@@ -30,14 +32,9 @@ const UPLOADS_DIR = path.join(__dirname, "uploads");
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 app.use("/uploads", express.static(UPLOADS_DIR));
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
-  filename: (req, file, cb) => {
-    const safeName = (req.user?.username || "user").replace(/[^a-z0-9]/gi, "_");
-    const ext = path.extname(file.originalname) || ".jpg";
-    cb(null, `${safeName}-${Date.now()}${ext}`);
-  },
-});
+// Files are kept in memory and persisted through utils/uploads.js, which stores
+// them on Vercel Blob when deployed or writes them to uploads/ locally.
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
@@ -328,13 +325,13 @@ app.post(
         return res.status(404).json({ error: "User not found" });
       }
       const oldAvatar = user.avatar;
-      user.avatar = `/uploads/${req.file.filename}`;
+      user.avatar = await saveUploadedFile(req.file, {
+        username: req.user.username,
+        folder: "avatars",
+      });
       await user.save();
 
-      if (oldAvatar && oldAvatar.startsWith("/uploads/")) {
-        const oldPath = path.join(__dirname, oldAvatar);
-        fs.unlink(oldPath, () => {});
-      }
+      await deleteUploadedFile(oldAvatar);
 
       res.json({ avatar: user.avatar, message: "Avatar updated" });
     } catch (error) {
@@ -358,13 +355,13 @@ app.post(
         return res.status(404).json({ error: "User not found" });
       }
       const oldCover = user.coverImage;
-      user.coverImage = `/uploads/${req.file.filename}`;
+      user.coverImage = await saveUploadedFile(req.file, {
+        username: req.user.username,
+        folder: "covers",
+      });
       await user.save();
 
-      if (oldCover && oldCover.startsWith("/uploads/")) {
-        const oldPath = path.join(__dirname, oldCover);
-        fs.unlink(oldPath, () => {});
-      }
+      await deleteUploadedFile(oldCover);
 
       res.json({ coverImage: user.coverImage, message: "Cover updated" });
     } catch (error) {
@@ -868,8 +865,12 @@ app.post(
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
       }
+      const url = await saveUploadedFile(req.file, {
+        username: req.user.username,
+        folder: "messages",
+      });
       res.json({
-        url: `/uploads/${req.file.filename}`,
+        url,
         fileName: req.file.originalname,
         fileSize: req.file.size,
         fileType: req.file.mimetype,
@@ -894,8 +895,12 @@ app.post(
       if (!group || !group.members.includes(req.user.username)) {
         return res.status(403).json({ error: "Not a group member" });
       }
+      const url = await saveUploadedFile(req.file, {
+        username: req.user.username,
+        folder: "messages",
+      });
       res.json({
-        url: `/uploads/${req.file.filename}`,
+        url,
         fileName: req.file.originalname,
         fileSize: req.file.size,
         fileType: req.file.mimetype,
@@ -1301,7 +1306,11 @@ app.post(
   async (req, res) => {
     try {
       if (!req.file) return res.status(400).json({ error: "No image uploaded" });
-      res.json({ url: `/uploads/${req.file.filename}` });
+      const url = await saveUploadedFile(req.file, {
+        username: req.user.username,
+        folder: "status",
+      });
+      res.json({ url });
     } catch (error) {
       res.status(500).json({ error: "Failed to upload status image" });
     }
@@ -1767,14 +1776,23 @@ app.get("/", (req, res) => {
   res.send("Hello World! Real-time Chat API is running.");
 });
 
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log("Connected to MongoDB✅");
-    server.listen(PORT, () => {
-      console.log(`Server Running on port ${PORT}`);
+// Boot the listener only when run directly (`node server.js` / `npm run dev`).
+// When imported by a Vercel function this file only registers routes.
+const isMain =
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isMain) {
+  connectDB()
+    .then(() => {
+      console.log("Connected to MongoDB✅");
+      server.listen(PORT, () => {
+        console.log(`Server Running on port ${PORT}`);
+      });
+    })
+    .catch((error) => {
+      console.log("Error connecting to MongoDB", error.message);
     });
-  })
-  .catch((error) => {
-    console.log("Error connecting to MongoDB", error.message);
-  });
+}
+
+export { app, server };

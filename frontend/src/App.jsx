@@ -60,6 +60,10 @@ import { CircleDot, Eye, Users, Camera, Play } from "lucide-react";
 const SOCKET_URL =
   import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:5005`;
 
+// On Vercel the Socket.IO function is served under /api/socket-io, so the path
+// becomes /api/socket-io/socket.io. Local dev keeps the default /socket.io.
+const SOCKET_PATH = import.meta.env.VITE_SOCKET_PATH || "/socket.io";
+
 function App() {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
@@ -306,6 +310,8 @@ function App() {
 
     const newSocket = io(SOCKET_URL, {
       withCredentials: true,
+      path: SOCKET_PATH,
+      transports: ["websocket"],
       query: { userId },
     });
     socketRef.current = newSocket;
