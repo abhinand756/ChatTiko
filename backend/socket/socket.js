@@ -291,7 +291,7 @@ io.on("connection", async (socket) => {
   User.findOneAndUpdate(
     { username },
     { lastSeen: new Date() },
-    { new: false },
+    { returnDocument: "before" },
   ).catch(() => {});
 
   io.emit("getOnlineUsers", onlineUsernames());
@@ -843,7 +843,7 @@ io.on("connection", async (socket) => {
       User.findOneAndUpdate(
         { username },
         { lastSeen: new Date() },
-        { new: false },
+        { returnDocument: "before" },
       ).catch(() => {});
     }
 

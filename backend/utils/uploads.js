@@ -4,7 +4,11 @@ import { fileURLToPath } from "url";
 import { put, del } from "@vercel/blob";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const UPLOADS_DIR = path.join(__dirname, "..", "uploads");
+// /tmp on Vercel functions (bundle dir is read-only); local dir otherwise.
+const UPLOADS_DIR =
+  process.env.VERCEL === "1"
+    ? path.join("/tmp", "uploads")
+    : path.join(__dirname, "..", "uploads");
 
 // When a BLOB_READ_WRITE_TOKEN is present (i.e. deployed on Vercel) files are
 // stored on Vercel Blob (persistent, CDN-served). Otherwise they are written to
@@ -38,7 +42,11 @@ export async function saveUploadedFile(file, { username, folder = "general" } = 
   }
 
   if (!fs.existsSync(UPLOADS_DIR)) {
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    try {
+      fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    } catch (error) {
+      throw new Error(`Uploads dir not writable: ${error.message}`);
+    }
   }
   const filename = path.basename(key);
   fs.writeFileSync(path.join(UPLOADS_DIR, filename), file.buffer);
