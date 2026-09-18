@@ -28,8 +28,21 @@ const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || "change-this-secret";
 
-const UPLOADS_DIR = path.join(__dirname, "uploads");
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+// Local files land in backend/uploads (writable dir). On Vercel (AWS Lambda)
+// the bundle directory is read-only — only /tmp is writable — so keep JSON read
+// and recorded uploads on Blob storage there; this dir is unused but must not
+// break module load (a failed mkdir here crashed the deployed function).
+const UPLOADS_DIR =
+  process.env.VERCEL === "1"
+    ? path.join("/tmp", "uploads")
+    : path.join(__dirname, "uploads");
+try {
+  if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  }
+} catch (error) {
+  console.warn("Uploads dir unavailable:", error.message);
+}
 app.use("/uploads", express.static(UPLOADS_DIR));
 
 // Files are kept in memory and persisted through utils/uploads.js, which stores
@@ -1322,7 +1335,7 @@ app.post("/api/status/:id/view", authMiddleware, async (req, res) => {
     const status = await Status.findByIdAndUpdate(
       req.params.id,
       { $addToSet: { viewers: req.user.username } },
-      { new: true },
+      { returnDocument: "after" },
     );
     if (!status) return res.status(404).json({ error: "Status not found" });
     res.json({ viewers: [...new Set(status.viewers || [])] });
@@ -1439,7 +1452,7 @@ app.put("/api/conversations/settings", authMiddleware, async (req, res) => {
           ...(archived !== undefined && { archived }),
         },
       },
-      { upsert: true, new: true, setDefaultsOnInsert: true },
+      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
     );
 
     res.json(settings);
