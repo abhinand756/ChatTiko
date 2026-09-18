@@ -26,20 +26,38 @@ export default function StatusScreen({
 }) {
   const grouped = useMemo(() => {
     const map = new Map();
-    statuses.forEach((s) => {
-      const list = map.get(s.userId) || [];
-      list.push(s);
-      map.set(s.userId, list);
-    });
+
+    statuses
+      .filter((s) => s.userId !== userId) // 👈 exclude my status
+      .forEach((s) => {
+        const list = map.get(s.userId) || [];
+        list.push(s);
+        map.set(s.userId, list);
+      });
+
     return [...map.entries()]
       .map(([user, list]) => {
-        list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-        const isViewed = list.every((s) => s.viewers?.includes(userId));
-        return { userId: user, list, last: list[list.length - 1], viewed: isViewed };
+        list.sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() -
+            new Date(b.createdAt).getTime()
+        );
+
+        const isViewed = list.every((s) =>
+          s.viewers?.includes(userId)
+        );
+
+        return {
+          userId: user,
+          list,
+          last: list[list.length - 1],
+          viewed: isViewed,
+        };
       })
       .sort(
         (a, b) =>
-          new Date(a.last.createdAt).getTime() - new Date(b.last.createdAt).getTime(),
+          new Date(a.last.createdAt).getTime() -
+          new Date(b.last.createdAt).getTime()
       );
   }, [statuses, userId]);
 

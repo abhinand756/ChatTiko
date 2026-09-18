@@ -8,8 +8,11 @@ import {
   Plus,
   X,
   Trash2,
+  Video,
 } from "lucide-react";
 import LogoSection from "./LogoSection";
+import { getCallType, getCallLabel } from "../utils/calls";
+import ConfirmationModal from "./ConfirmationModal";
 
 function formatCallTime(timestamp) {
   if (!timestamp) return "";
@@ -29,13 +32,13 @@ function formatCallTime(timestamp) {
   });
 }
 
-function getCallTypeLabel(call, userId) {
-  if (call.status === "missed") return "missed";
-  if (call.status === "rejected") return "missed";
-  if (call.status === "canceled") return "canceled";
-  if (call.callerId === userId) return "outgoing";
-  return "incoming";
-}
+const StatusIcon = ({ type }) => {
+  if (type === "outgoing") return <PhoneOutgoing className="h-4 w-4 text-emerald-400" />;
+  if (type === "incoming") return <PhoneIncoming className="h-4 w-4 text-emerald-400" />;
+  if (type === "outgoing-missed") return <PhoneOutgoing className="h-4 w-4 text-red-400" />;
+  if (type === "incoming-missed") return <PhoneIncoming className="h-4 w-4 text-red-400" />;
+  return <PhoneMissed className="h-4 w-4 text-slate-400" />;
+};
 
 export default function CallsScreen({
   calls,
@@ -51,52 +54,39 @@ export default function CallsScreen({
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [showCallPicker, setShowCallPicker] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const filtered = calls.filter((call) => {
-    const type = getCallTypeLabel(call, userId);
+    const type = getCallType(call, userId);
     const partner = call.callerId === userId ? call.receiverId : call.callerId;
     const matchesQuery = partner.toLowerCase().includes(query.toLowerCase());
     const matchesFilter =
-      filter === "all" ||
-      (filter === "missed" && type === "missed") ||
-      (filter === "outgoing" && type === "outgoing") ||
-      (filter === "incoming" && type === "incoming");
+      filter === "all" || (filter === "missed" && type.includes("missed"));
     return matchesQuery && matchesFilter;
   });
-
-  const StatusIcon = ({ type }) => {
-    if (type === "missed") return <PhoneMissed className="h-4 w-4 text-red-400" />;
-    if (type === "outgoing") return <PhoneOutgoing className="h-4 w-4 text-emerald-400" />;
-    if (type === "incoming") return <PhoneIncoming className="h-4 w-4 text-sky-400" />;
-    return <PhoneMissed className="h-4 w-4 text-slate-400" />;
-  };
 
   return (
     <div className="flex h-full flex-col border-r border-white/10 bg-card/40 backdrop-blur-xl">
       <LogoSection onOpenSidebar={onOpenSidebar} />
 
-<div className="flex items-center gap-3 border-b border-white/10 px-5 pb-3 pt-1">
-          <div>
-            <h1 className="text-xl font-semibold text-white">Calls</h1>
-            <p className="mt-0.5 text-sm text-slate-400">
-              Your recent voice &amp; video calls
-            </p>
-          </div>
-          {calls.length > 0 && (
-            <button
-              type="button"
-              onClick={() => {
-                if (window.confirm("Clear all call logs?")) {
-                  onClearCalls?.();
-                }
-              }}
-              className="ml-auto flex h-8 w-8 items-center justify-center rounded-[10px] border border-white/10 bg-white/5 text-slate-400 transition hover:bg-red-500/10 hover:text-red-300"
-              title="Clear call log"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          )}
+      <div className="flex items-center gap-3 border-b border-white/10 px-5 pb-3 pt-1">
+        <div>
+          <h1 className="text-xl font-semibold text-white">Calls</h1>
+          <p className="mt-0.5 text-sm text-slate-400">
+            Your recent voice &amp; video calls
+          </p>
         </div>
+        {calls.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowClearConfirm(true)}
+            className="ml-auto flex h-8 w-8 items-center justify-center rounded-[10px] border border-white/10 bg-white/5 text-slate-400 transition hover:bg-red-500/10 hover:text-red-300"
+            title="Clear call log"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
+      </div>
 
       <div className="px-4 pt-4">
         <div className="flex items-center gap-2 rounded-[10px] border border-white/10 bg-[#0b1220] px-3 py-3 text-slate-300">
@@ -148,7 +138,7 @@ export default function CallsScreen({
         ) : (
           <div className="space-y-[6px]">
             {filtered.map((call) => {
-              const type = getCallTypeLabel(call, userId);
+              const type = getCallType(call, userId);
               const partner =
                 call.callerId === userId ? call.receiverId : call.callerId;
               const isOnline = onlineUsers.includes(partner);
@@ -176,11 +166,7 @@ export default function CallsScreen({
                     </h3>
                     <p className="mt-0.5 flex items-center gap-1.5 text-xs capitalize text-slate-400">
                       <StatusIcon type={type} />
-                      {type === "missed"
-                        ? "Missed call"
-                        : type === "outgoing"
-                          ? "Outgoing"
-                          : "Incoming"}{" "}
+                      {getCallLabel(type)}{" "}
                       · {call.callType === "video" ? "Video" : "Voice"} ·{" "}
                       {formatCallTime(call.timestamp || call.createdAt)}
                       {call.duration > 0 && ` · ${Math.floor(call.duration / 60)}m ${call.duration % 60}s`}
@@ -194,7 +180,7 @@ export default function CallsScreen({
                       }}
                       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary transition hover:bg-primary hover:text-white"
                     >
-                      <Phone className="h-4 w-4" />
+                      {call.callType === "video" ? <Video className="h-4 w-4" /> : <Phone className="h-4 w-4" />}
                     </span>
                   )}
                 </button>
@@ -281,6 +267,20 @@ export default function CallsScreen({
           </div>
         </div>
       )}
+
+      {/* Clear call log confirmation */}
+      <ConfirmationModal
+        isOpen={showClearConfirm}
+        title="Clear call logs?"
+        message="This will permanently delete your entire call history. This action cannot be undone."
+        confirmLabel="Clear"
+        cancelLabel="Cancel"
+        onClose={() => setShowClearConfirm(false)}
+        onConfirm={() => {
+          setShowClearConfirm(false);
+          onClearCalls?.();
+        }}
+      />
     </div>
   );
 }

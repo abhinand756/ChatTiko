@@ -283,7 +283,7 @@ export default function StatusDetail({
 
       {/* Open chat */}
       {!info.isMe && (
-        <div className="px-8 pb-10">
+        <div className="mt-2 px-8 pb-10">
           <button
             type="button"
             onClick={() => onOpenChat?.(ownerId)}

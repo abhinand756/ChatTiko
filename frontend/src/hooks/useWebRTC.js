@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { showToast } from "../utils/toast";
 
 const ICE_SERVERS = {
   iceServers: [
@@ -121,7 +122,7 @@ export function useWebRTC(socketRef, userId) {
       });
     } catch (err) {
       console.error("Error starting call:", err);
-      alert("Could not access media devices for call.");
+      showToast("Could not access media devices for call.", "error");
       cleanUpCall();
     }
   }, [socketRef, userId, createPeerConnection, cleanUpCall]);
@@ -251,7 +252,7 @@ export function useWebRTC(socketRef, userId) {
     };
 
     const handleCallRejected = () => {
-      alert("Call was declined.");
+      showToast("Call was declined.", "error");
       cleanUpCall();
     };
 

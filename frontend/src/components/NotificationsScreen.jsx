@@ -1,41 +1,14 @@
-import { useState } from "react";
 import { Bell, MessageSquare, Phone, UserPlus, Check, Menu } from "lucide-react";
 import LogoSection from "./LogoSection";
 
 export default function NotificationsScreen({
-  onlineUsers,
+  notifications = [],
   selectedId,
   onSelect,
+  onMarkAllRead,
   onOpenSidebar,
 }) {
-  const [notifications, setNotifications] = useState(() => {
-    const items = [];
-    if (onlineUsers.length > 0) {
-      items.push({
-        id: "online",
-        type: "status",
-        title: `${onlineUsers.length} contact${onlineUsers.length > 1 ? "s" : ""
-          } online now`,
-        body: "Your friends are available to chat.",
-        time: "Just now",
-      });
-    }
-    items.push(
-      {
-        id: "welcome",
-        type: "message",
-        title: "Welcome to Chattiko!",
-        body: "Tap a chat to start a conversation or call someone.",
-        time: "Today",
-      },
-    );
-    return items;
-  });
-
   const unread = notifications.filter((n) => !n.read).length;
-
-  const markAllRead = () =>
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
 
   const TypeIcon = ({ type }) => {
     switch (type) {
@@ -73,10 +46,10 @@ export default function NotificationsScreen({
             </p>
           </div>
         </div>
-        {unread > 0 && (
+{unread > 0 && (
           <button
             type="button"
-            onClick={markAllRead}
+            onClick={onMarkAllRead}
             className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-white/10 hover:text-white"
           >
             <Check className="h-3.5 w-3.5" />
@@ -103,7 +76,7 @@ export default function NotificationsScreen({
               <button
                 key={n.id}
                 type="button"
-                onClick={() => onSelect?.(n.id)}
+                onClick={() => onSelect?.(n)}
                 className={`flex w-full items-start gap-3 rounded-[12px] border px-3 py-3 text-left transition hover:border-primary/50 hover:bg-white/5 ${selectedId === n.id
                     ? "border-primary bg-white/10"
                     : n.read

@@ -310,7 +310,7 @@ export default function ChatDetail({
       }, 1000);
     } catch (err) {
       console.error("Microphone access error:", err);
-      alert("Could not access microphone. Please check permissions.");
+      showToast("Could not access microphone. Please check permissions.", "error");
     }
   };
 
@@ -363,7 +363,7 @@ export default function ChatDetail({
       }, 1000);
     } catch (err) {
       console.error("Camera access error:", err);
-      alert("Could not access camera. Please check permissions.");
+      showToast("Could not access camera. Please check permissions.", "error");
     }
   };
 
@@ -428,7 +428,7 @@ export default function ChatDetail({
 
   const sendCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by this browser.");
+      showToast("Geolocation is not supported by this browser.", "error");
       return;
     }
     setSendingLocation(true);
@@ -444,7 +444,7 @@ export default function ChatDetail({
       (err) => {
         console.error("Geolocation error:", err);
         setSendingLocation(false);
-        alert("Could not retrieve your location.");
+        showToast("Could not retrieve your location.", "error");
       },
       { timeout: 8000 },
     );

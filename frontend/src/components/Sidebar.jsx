@@ -2,6 +2,7 @@ import {
   MessageSquare,
   Phone,
   CircleDot,
+  Bell,
   Settings,
   User,
   LogOut,
@@ -11,6 +12,7 @@ const NAV_ITEMS = [
   { id: "chats", label: "Chats", Icon: MessageSquare },
   { id: "status", label: "Status", Icon: CircleDot },
   { id: "calls", label: "Calls", Icon: Phone },
+  { id: "notifications", label: "Notifications", Icon: Bell },
   { id: "settings", label: "Settings", Icon: Settings },
 ];
 
@@ -22,6 +24,7 @@ export default function Sidebar({
   onViewChange,
   userId,
   avatar,
+  unreadCount = 0,
 }) {
   return (
     <>
@@ -66,19 +69,25 @@ export default function Sidebar({
           {NAV_ITEMS.map(({ id, label, Icon }) => {
             const active = view === id;
             return (
-              <button
-                key={id}
-                type="button"
-                title={label}
-                aria-label={label}
-                onClick={() => onViewChange(id)}
-                className={`group relative flex h-12 w-12 items-center justify-center rounded-[12px] transition ${active
+              <div key={id} className="relative">
+                <button
+                  type="button"
+                  title={label}
+                  aria-label={label}
+                  onClick={() => onViewChange(id)}
+                  className={`group relative flex h-12 w-12 items-center justify-center rounded-[12px] transition ${active
                     ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-purple-900/40"
                     : "bg-white/5 text-white hover:bg-white/10"
-                  }`}
-              >
-                <Icon className="h-5 w-5 transition" />
-              </button>
+                    }`}
+                >
+                  <Icon className="h-5 w-5 transition" />
+                </button>
+                {id === "notifications" && unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-[#070b17]">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </div>
             );
           })}
         </div>

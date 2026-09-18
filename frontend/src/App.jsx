@@ -55,7 +55,7 @@ import {
   exportChat,
   scheduleMessage,
 } from "./api/conversationApi";
-import { CircleDot } from "lucide-react";
+import { CircleDot, Eye, Users, Camera, Play } from "lucide-react";
 
 const SOCKET_URL =
   import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:5005`;
@@ -88,6 +88,7 @@ function App() {
   const [blockedUsers, setBlockedUsers] = useState([]);
   const [callLogs, setCallLogs] = useState([]);
   const [statuses, setStatuses] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [statusViewer, setStatusViewer] = useState(null);
   const [selectedStatusUser, setSelectedStatusUser] = useState(null);
   const [showCreateStatusModal, setShowCreateStatusModal] = useState(false);
@@ -109,9 +110,26 @@ function App() {
   const seenMessageIds = useRef(new Set());
   const typingTimeoutRef = useRef(null);
   const viewerSessionRef = useRef(0);
+  const lastCallNotifRef = useRef(null);
+  const lastIncomingCallRef = useRef(null);
+
+  const selectedUserRef = useRef(selectedUser);
+  useEffect(() => {
+    selectedUserRef.current = selectedUser;
+  }, [selectedUser]);
+
+  const selectedGroupRef = useRef(selectedGroup);
+  useEffect(() => {
+    selectedGroupRef.current = selectedGroup;
+  }, [selectedGroup]);
 
   const { allUsers, loadUsers, sendRequest, accept, decline, unfriend } =
     useUsers();
+
+  const allUsersRef = useRef([]);
+  useEffect(() => {
+    allUsersRef.current = allUsers;
+  }, [allUsers]);
   const {
     profile,
     saving: profileSaving,
@@ -241,6 +259,46 @@ function App() {
     );
   }, []);
 
+  // ==================== NOTIFICATIONS HELPERS ====================
+
+  const getUserName = useCallback((username) => {
+    const u = allUsersRef.current.find((x) => x.username === username);
+    return u?.displayName || username;
+  }, []);
+
+  const getMessagePreview = useCallback((msg) => {
+    const text = msg?.text?.trim?.();
+    if (text) return text.length > 60 ? `${text.slice(0, 60)}…` : text;
+    if (msg?.messageType === "image") return "📷 Photo";
+    if (msg?.attachmentType) return "📎 Attachment";
+    if (msg?.poll) return "📊 Poll";
+    return "New message";
+  }, []);
+
+  const pushNotification = useCallback((n) => {
+    setNotifications((prev) =>
+      [
+        {
+          id: `notif-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          read: false,
+          time: "Just now",
+          ...n,
+        },
+        ...prev,
+      ].slice(0, 50),
+    );
+  }, []);
+
+  const markNotificationRead = useCallback((id) => {
+    setNotifications((prev) =>
+      prev.map((x) => (x.id === id ? { ...x, read: true } : x)),
+    );
+  }, []);
+
+  const markAllNotificationsRead = useCallback(() => {
+    setNotifications((prev) => prev.map((x) => ({ ...x, read: true })));
+  }, []);
+
   // ==================== SOCKET SETUP ====================
 
   useEffect(() => {
@@ -260,6 +318,18 @@ function App() {
       seenMessageIds.current.add(msgId);
       setMessages((prev) => [...prev, msg]);
       updateConversationWithMessage(msg, true);
+      if (
+        String(msg.senderId) !== String(userId) &&
+        String(msg.senderId) !== String(selectedUserRef.current)
+      ) {
+        pushNotification({
+          id: `msg-${msgId}`,
+          type: "message",
+          from: msg.senderId,
+          title: "New message",
+          body: `${getUserName(msg.senderId)}: ${getMessagePreview(msg)}`,
+        });
+      }
     });
 
     newSocket.on("groupMessage", (msg) => {
@@ -268,6 +338,18 @@ function App() {
         if (seenMessageIds.current.has(msgId)) return;
         seenMessageIds.current.add(msgId);
         setMessages((prev) => [...prev, msg]);
+      }
+      if (
+        String(msg.senderId) !== String(userId) &&
+        String(msg.groupId) !== String(selectedGroupRef.current)
+      ) {
+        pushNotification({
+          id: `gmsg-${String(msg.id)}`,
+          type: "message",
+          from: msg.groupId,
+          title: "New group message",
+          body: `${getUserName(msg.senderId)}: ${getMessagePreview(msg)}`,
+        });
       }
     });
 
@@ -345,7 +427,27 @@ function App() {
     });
 
     newSocket.on("callLogUpdated", () => {
-      getCallLogs().then(setCallLogs).catch(() => { });
+      getCallLogs()
+        .then((logs) => {
+          setCallLogs(logs);
+          const latest = logs?.[0];
+          if (
+            latest &&
+            String(latest.receiverId) === String(userId) &&
+            ["missed", "canceled"].includes(latest.status) &&
+            String(latest.id) !== String(lastCallNotifRef.current)
+          ) {
+            lastCallNotifRef.current = latest.id;
+            pushNotification({
+              id: `call-${String(latest.id)}`,
+              type: "call",
+              from: latest.callerId,
+              title: "Missed call",
+              body: `${latest.callType === "video" ? "Video" : "Voice"} call from ${getUserName(latest.callerId)}`,
+            });
+          }
+        })
+        .catch(() => { });
     });
 
     newSocket.on("pollUpdate", (pollUpdate) => {
@@ -397,7 +499,7 @@ function App() {
     return () => {
       newSocket.close();
     };
-  }, [isJoined, userId, selectedGroup, selectedUser, updateConversationWithMessage, replaceTempMessage, markMessagesDelivered, markMessagesSeen]);
+  }, [isJoined, userId, selectedGroup, selectedUser, updateConversationWithMessage, replaceTempMessage, markMessagesDelivered, markMessagesSeen, pushNotification, getUserName, getMessagePreview]);
 
   // ==================== DRAFT HANDLING ====================
 
@@ -870,6 +972,39 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [groups],
   );
+
+  // ==================== NOTIFICATIONS INTERACTION ====================
+
+  const handleNotificationClick = useCallback(
+    (n) => {
+      markNotificationRead(n?.id);
+      if (n?.type === "message" && n?.from) {
+        setView("chats");
+        handleSelectUser(n.from);
+      } else if (n?.type === "call" && n?.from) {
+        setView("calls");
+        setSelectedItemId(null);
+      }
+    },
+    [markNotificationRead, handleSelectUser],
+  );
+
+  // Incoming ringing call notification
+  useEffect(() => {
+    if (webRTC.callState === "receiving" && webRTC.partner) {
+      if (lastIncomingCallRef.current === webRTC.partner) return;
+      lastIncomingCallRef.current = webRTC.partner;
+      pushNotification({
+        type: "call",
+        from: webRTC.partner,
+        title: "Incoming call",
+        body: `${webRTC.callType === "video" ? "Video" : "Voice"} call from ${getUserName(webRTC.partner)}`,
+      });
+    } else if (webRTC.callState !== "receiving") {
+      lastIncomingCallRef.current = null;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [webRTC.callState, webRTC.partner, webRTC.callType]);
 
   const sendMessage = (e) => {
     e.preventDefault();
@@ -1362,6 +1497,7 @@ function App() {
           onLogout={() => setShowLogoutModal(true)}
           view={view}
           onViewChange={handleViewChange}
+          unreadCount={notifications.filter((n) => !n.read).length}
         />
         {view === "chats" ? (
           <>
@@ -1512,7 +1648,7 @@ function App() {
                   onBack={() => setSelectedStatusUser(null)}
                 />
               ) : (
-                <div className="flex flex-1 flex-col items-center justify-center px-10 text-center">
+                <div className="flex flex-1 flex-col items-center justify-center scrollbar-none overflow-y-auto px-10 py-8 text-center">
                   {activeStatusUser && (
                     <button
                       type="button"
@@ -1532,6 +1668,86 @@ function App() {
                     View and post status updates that disappear after 24 hours.
                     Select a contact to see their update.
                   </p>
+
+                  <div className="mt-8 w-full max-w-[460px]">
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        {
+                          label: "Total updates",
+                          value: statuses.length,
+                          icon: CircleDot,
+                          color: "text-emerald-400",
+                        },
+                        {
+                          label: "My updates",
+                          value: myStatuses.length,
+                          icon: Eye,
+                          color: "text-indigo-400",
+                        },
+                        {
+                          label: "Contacts",
+                          value: statusGroups.length,
+                          icon: Users,
+                          color: "text-rose-400",
+                        },
+                      ].map((stat) => (
+                        <div
+                          key={stat.label}
+                          className="rounded-[14px] border border-white/10 bg-white/[0.04] px-4 py-4"
+                        >
+                          <div className="flex items-center gap-2">
+                            <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                            <span className="text-[11px] text-slate-400">
+                              {stat.label}
+                            </span>
+                          </div>
+                          <p className="mt-2 text-2xl font-bold text-white">
+                            {stat.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-10 w-full max-w-[460px] space-y-3 text-left">
+                    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      How statuses work
+                    </h3>
+                    {[
+                      {
+                        icon: Camera,
+                        title: "Share your moments",
+                        desc: "Post text or photos that stay visible to your friends for 24 hours.",
+                      },
+                      {
+                        icon: Eye,
+                        title: "See who viewed",
+                        desc: "Your own status shows exactly who viewed each update.",
+                      },
+                      {
+                        icon: Play,
+                        title: "Tap to advance",
+                        desc: "Open a status and tap left or right to move between updates.",
+                      },
+                    ].map((tip) => (
+                      <div
+                        key={tip.title}
+                        className="flex items-start gap-3 rounded-[14px] border border-white/10 bg-white/[0.03] px-4 py-3"
+                      >
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/5 text-slate-300">
+                          <tip.icon className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-white">
+                            {tip.title}
+                          </p>
+                          <p className="mt-0.5 text-xs text-slate-400">
+                            {tip.desc}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -1589,12 +1805,10 @@ function App() {
               )}
               {view === "notifications" && (
                 <NotificationsScreen
-                  onlineUsers={onlineUsers}
-                  onOpenChat={() => {
-                    setView("chats");
-                  }}
+                  notifications={notifications}
                   selectedId={selectedItemId}
-                  onSelect={setSelectedItemId}
+                  onSelect={handleNotificationClick}
+                  onMarkAllRead={markAllNotificationsRead}
                   onOpenSidebar={() => setIsMobileSidebarOpen(true)}
                 />
               )}
@@ -1634,35 +1848,7 @@ function App() {
                 <NotificationsDetail
                   selectedId={selectedItemId}
                   onBack={() => setSelectedItemId(null)}
-                  notifications={
-                    onlineUsers.length > 0
-                      ? [
-                        {
-                          id: "online",
-                          type: "status",
-                          title: `${onlineUsers.length} contact${onlineUsers.length > 1 ? "s" : ""
-                            } online now`,
-                          body: "Your friends are available to chat.",
-                          time: "Just now",
-                        },
-                        {
-                          id: "welcome",
-                          type: "message",
-                          title: "Welcome to Chattiko!",
-                          body: "Tap a chat to start a conversation or call someone.",
-                          time: "Today",
-                        },
-                      ]
-                      : [
-                        {
-                          id: "welcome",
-                          type: "message",
-                          title: "Welcome to Chattiko!",
-                          body: "Tap a chat to start a conversation or call someone.",
-                          time: "Today",
-                        },
-                      ]
-                  }
+                  notifications={notifications}
                 />
               )}
               {view === "settings" && (

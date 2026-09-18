@@ -9,6 +9,7 @@ import {
   MessageSquare,
   ArrowLeft,
 } from "lucide-react";
+import { getCallType, getCallLabel } from "../utils/calls";
 
 function formatTime(timestamp) {
   if (!timestamp) return "Never";
@@ -37,8 +38,10 @@ function CallStats({ calls, userId }) {
     (c) => c.callerId === userId || c.receiverId === userId,
   );
   const total = relevant.length;
-  const outgoing = relevant.filter((c) => c.callerId === userId && !["missed", "canceled"].includes(c.status)).length;
-  const missed = relevant.filter((c) => c.status === "missed").length;
+  const outgoing = relevant.filter((c) => c.callerId === userId).length;
+  const missed = relevant.filter((c) =>
+    getCallType(c, userId).includes("missed"),
+  ).length;
 
   return (
     <div className="grid grid-cols-3 gap-3">
@@ -158,15 +161,7 @@ export default function CallsDetail({
                 </p>
                 <p className="text-xs text-slate-400">
                   {mostRecent?.callType === "video" ? "Video" : "Voice"} ·{" "}
-                  {mostRecent?.status === "missed"
-                    ? "Missed"
-                    : mostRecent?.status === "rejected"
-                      ? "Rejected"
-                      : mostRecent?.status === "canceled"
-                        ? "Canceled"
-                        : mostRecent?.callerId === userId
-                          ? "Outgoing"
-                          : "Incoming"}
+                  {getCallLabel(getCallType(mostRecent, userId))}
                 </p>
               </div>
             </div>

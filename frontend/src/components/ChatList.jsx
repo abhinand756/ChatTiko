@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Search, Users, Plus, Pin, BellOff } from "lucide-react";
+import { Search, Users, Plus, Pin, BellOff, X } from "lucide-react";
 
 function formatChatTimestamp(timestamp) {
   if (!timestamp) return "";
@@ -49,18 +49,16 @@ export default function ChatList({
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
 
-  const items = useMemo(() => {
+const items = useMemo(() => {
     const direct = chats.map((c) => ({
       id: c.id,
-      name: c.id === chats.find((x) => x.id === c.id)?.id ? c.name : c.name,
+      name: c.name,
       preview: c.preview,
       timestamp: c.timestamp,
       unreadCount: c.unreadCount || 0,
       pinned: !!c.pinned,
       muted: !!c.muted,
-      type: c.id.toLowerCase() === (c.id?.toLowerCase() || "") && c.pinned === undefined
-        ? (c.type || "user")
-        : (c.type || "user"),
+      type: c.type || "user",
     }));
 
     const groupItems = (groups || []).map((g) => ({
@@ -102,10 +100,30 @@ export default function ChatList({
   const pinned = filtered.filter((c) => c.pinned);
   const rest = filtered.filter((c) => !c.pinned);
 
-  const renderItem = (chat, keySuffix = "") => (
-    <button
+  const renderItem = (chat, keySuffix = "") => {
+    const highlight = (text) => {
+      const q = query.trim().toLowerCase();
+      if (!q || !text) return text;
+      const idx = text.toLowerCase().indexOf(q);
+      if (idx === -1) return text;
+      return (
+        <>
+          {text.slice(0, idx)}
+          <mark className="rounded bg-amber-300/25 px-0.5 text-white">
+            {text.slice(idx, idx + q.length)}
+          </mark>
+          {text.slice(idx + q.length)}
+        </>
+      );
+    };
+
+    return (
+      <button
       key={`${chat.type}-${chat.id}${keySuffix}`}
-      onClick={() => onSelect(chat.id)}
+      onClick={() => {
+        onSelect(chat.id);
+        setQuery("");
+      }}
       className={`w-full rounded-[12px] border px-3 py-3 text-left transition hover:border-primary/50 hover:bg-white/5 ${
         selectedChat === chat.id
           ? "border-primary bg-white/10"
@@ -129,7 +147,7 @@ export default function ChatList({
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-1.5">
               <h3 className="truncate text-sm font-semibold capitalize text-white">
-                {chat.name}
+                {highlight(chat.name)}
               </h3>
               {chat.pinned && (
                 <Pin className="h-3 w-3 shrink-0 text-amber-400" />
@@ -165,6 +183,7 @@ export default function ChatList({
       </div>
     </button>
   );
+  };
 
   return (
     <div className="flex h-full flex-col bg-card/40 backdrop-blur-xl">
@@ -178,19 +197,21 @@ export default function ChatList({
             placeholder="Search chats..."
             className="w-full bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
           />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/10 text-slate-300 transition hover:bg-white/25"
+              title="Clear search"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
         </div>
-        <button
-          type="button"
-          onClick={onCreateGroup}
-          className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[12px] border border-white/10 bg-white/5 text-slate-300 transition hover:bg-primary/20 hover:text-white"
-          title="New group"
-        >
-          <Plus className="h-5 w-5" />
-        </button>
       </div>
 
       {/* Filter chips */}
-      <div className="flex gap-1.5 px-4 pb-2">
+      <div className="flex items-center gap-1.5 px-4 pb-2">
         {FILTERS.map((f) => (
           <button
             key={f.id}
@@ -205,6 +226,11 @@ export default function ChatList({
             {f.label}
           </button>
         ))}
+        {query.trim() && (
+          <span className="ml-auto text-[11px] whitespace-nowrap text-slate-500">
+            {filtered.length} result{filtered.length === 1 ? "" : "s"}
+          </span>
+        )}
       </div>
 
       <div className="flex-1 space-y-[6px] overflow-y-auto px-4 pb-24 pt-2">
