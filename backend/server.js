@@ -1789,8 +1789,20 @@ app.get("/", (req, res) => {
   res.send("Hello World! Real-time Chat API is running.");
 });
 
+// ==================== GLOBAL ERROR HANDLER ====================
+
+// Catches anything thrown in the request pipeline and logs the FULL stack to
+// the function logs (Vercel CLI truncates its table view) so real errors are
+// visible instead of an opaque 500 / truncated message.
+app.use((err, req, res, next) => {
+  console.error(`[error] ${req.method} ${req.url}\n${err.stack || err}`);
+  res.status(500).json({ error: err.message || "Internal server error" });
+});
+
 // Boot the listener only when run directly (`node server.js` / `npm run dev`).
-// When imported by a Vercel function this file only registers routes.
+// On Vercel this file is the single function entry: it must default-export a
+// valid handler (the http server). Mongo connects lazily (mongoose buffers
+// commands until ready), so a slow/absent DB never blocks module load.
 const isMain =
   process.argv[1] &&
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
@@ -1806,6 +1818,11 @@ if (isMain) {
     .catch((error) => {
       console.log("Error connecting to MongoDB", error.message);
     });
+} else {
+  connectDB().catch((error) => {
+    console.error("[startup] MongoDB connection failed:", error.message);
+  });
 }
 
 export { app, server };
+export default server;
