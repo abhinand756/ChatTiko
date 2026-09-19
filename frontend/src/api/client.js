@@ -1,7 +1,7 @@
 // src/api/client.js
 // Centralized fetch wrapper that adds base URL, credentials, JSON handling, and error handling.
 
-const BASE_URL = import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:5005`;
+const BASE_URL = (import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:5005`).replace(/\/+$/, "");
 
 const ABSOLUTE_URL = /^(https?:|data:|blob:|\/\/)/i;
 

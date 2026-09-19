@@ -57,7 +57,7 @@ export const uploadGroupFile = async (groupId, file) => {
   const formData = new FormData();
   formData.append("file", file);
   const response = await fetch(
-    `${import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:5005`}/api/groups/${encodeURIComponent(groupId)}/upload`,
+    `${(import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:5005`).replace(/\/+$/, "")}/api/groups/${encodeURIComponent(groupId)}/upload`,
     {
       method: "POST",
       credentials: "include",
