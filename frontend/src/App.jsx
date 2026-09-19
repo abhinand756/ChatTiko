@@ -57,8 +57,9 @@ import {
 } from "./api/conversationApi";
 import { CircleDot, Eye, Users, Camera, Play } from "lucide-react";
 
-const SOCKET_URL =
-  import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:5005`;
+const SOCKET_URL = (
+  import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:5005`
+).replace(/\/+$/, "");
 
 // On Vercel the Socket.IO function is served under /api/socket-io, so the path
 // becomes /api/socket-io/socket.io. Local dev keeps the default /socket.io.
