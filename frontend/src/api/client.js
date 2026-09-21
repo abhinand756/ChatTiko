@@ -1,7 +1,19 @@
 // src/api/client.js
 // Centralized fetch wrapper that adds base URL, credentials, JSON handling, and error handling.
 
-const BASE_URL = (import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:5005`).replace(/\/+$/, "");
+// Same-origin by default (on Vercel the API + Socket.IO are proxied through the
+// frontend's own domain via vercel.json rewrites, making cookies first-party).
+// Local dev and an explicit VITE_SOCKET_URL override still hit a separate host.
+export const getApiBase = () => {
+  if (import.meta.env.VITE_SOCKET_URL) return import.meta.env.VITE_SOCKET_URL;
+  const host = window.location.hostname;
+  if (host === "localhost" || host === "127.0.0.1") {
+    return `http://${host}:5005`;
+  }
+  return "";
+};
+
+const BASE_URL = getApiBase().replace(/\/+$/, "");
 
 const ABSOLUTE_URL = /^(https?:|data:|blob:|\/\/)/i;
 

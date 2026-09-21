@@ -1,5 +1,5 @@
 // src/api/messageApi.js
-import { apiFetch } from "./client";
+import { apiFetch, getApiBase } from "./client";
 
 export const searchMessages = async (receiverId, query) => {
   return await apiFetch(
@@ -22,7 +22,7 @@ export const togglePin = async (messageId) => {
 export const uploadMessageFile = async (file) => {
   const formData = new FormData();
   formData.append("file", file);
-  const BASE = (import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:5005`).replace(/\/+$/, "");
+  const BASE = getApiBase();
   const response = await fetch(`${BASE}/api/messages/upload`, {
     method: "POST",
     credentials: "include",

@@ -77,6 +77,14 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
+// Never let the Vercel CDN cache auth-dependent responses: cache keys ignore
+// cookies, so a cached 200 could leak one user's authenticated state to another.
+app.use("/api", (req, res, next) => {
+  res.set("Cache-Control", "private, no-store");
+  res.set("Vary", "Cookie");
+  next();
+});
+
 const createToken = (user, sid) => {
   return jwt.sign(
     { id: user._id.toString(), username: user.username, sid },

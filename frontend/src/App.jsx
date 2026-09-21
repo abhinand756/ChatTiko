@@ -29,7 +29,7 @@ import { useUsers } from "./hooks/useUsers";
 import { useProfile } from "./hooks/useProfile";
 import { useWebRTC } from "./hooks/useWebRTC";
 import { useGroups } from "./hooks/useGroups";
-import { resolveMediaUrl } from "./api/client";
+import { getApiBase, resolveMediaUrl } from "./api/client";
 import {
   blockUser,
   unblockUser,
@@ -57,13 +57,18 @@ import {
 } from "./api/conversationApi";
 import { CircleDot, Eye, Users, Camera, Play } from "lucide-react";
 
-const SOCKET_URL = (
-  import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:5005`
-).replace(/\/+$/, "");
+const SOCKET_URL = getApiBase().replace(/\/+$/, "");
 
-// On Vercel the Socket.IO function is served under /api/socket-io, so the path
-// becomes /api/socket-io/socket.io. Local dev keeps the default /socket.io.
+// Socket.IO path. Defaults to /socket.io — on Vercel this is proxied to the
+// backend through the frontend's own origin, so the auth cookie stays first-party.
 const SOCKET_PATH = import.meta.env.VITE_SOCKET_PATH || "/socket.io";
+
+// polling first, then upgrade to websocket when the platform supports it.
+// (Vercel's same-origin proxy handles websocket upgrades locally but may fall
+// back to polling — both are supported, so realtime keeps working.)
+const SOCKET_TRANSPORTS = import.meta.env.VITE_SOCKET_TRANSPORTS
+  ? import.meta.env.VITE_SOCKET_TRANSPORTS.split(",")
+  : ["polling", "websocket"];
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -312,7 +317,7 @@ function App() {
     const newSocket = io(SOCKET_URL, {
       withCredentials: true,
       path: SOCKET_PATH,
-      transports: ["websocket"],
+      transports: SOCKET_TRANSPORTS,
       query: { userId },
     });
     socketRef.current = newSocket;

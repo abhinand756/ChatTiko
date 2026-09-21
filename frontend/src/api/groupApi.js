@@ -1,5 +1,5 @@
 // src/api/groupApi.js
-import { apiFetch } from "./client";
+import { apiFetch, getApiBase } from "./client";
 
 export const getAllGroups = async () => {
   return await apiFetch(`/api/groups`);
@@ -57,7 +57,7 @@ export const uploadGroupFile = async (groupId, file) => {
   const formData = new FormData();
   formData.append("file", file);
   const response = await fetch(
-    `${(import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:5005`).replace(/\/+$/, "")}/api/groups/${encodeURIComponent(groupId)}/upload`,
+    `${getApiBase()}/api/groups/${encodeURIComponent(groupId)}/upload`,
     {
       method: "POST",
       credentials: "include",
