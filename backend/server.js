@@ -27,6 +27,8 @@ const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || "change-this-secret";
+const DEPLOYED =
+  process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
 
 // Local files land in backend/uploads (writable dir). On Vercel (AWS Lambda)
 // the bundle directory is read-only — only /tmp is writable — so keep JSON read
@@ -106,8 +108,8 @@ const isSessionActive = async (sid) => {
 const clearAuthCookie = (res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: DEPLOYED,
+    sameSite: DEPLOYED ? "none" : "lax",
   });
 };
 
@@ -131,8 +133,8 @@ const authMiddleware = async (req, res, next) => {
 const sendAuthCookie = (res, token) => {
   res.cookie("token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: DEPLOYED,
+    sameSite: DEPLOYED ? "none" : "lax",
     maxAge: 1000 * 60 * 60 * 24,
   });
 };

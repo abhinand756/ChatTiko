@@ -12,19 +12,31 @@ import Session from "../models/Session.js";
 
 const app = express();
 
-const ALLOWED_ORIGINS = (process.env.CLIENT_ORIGIN || "")
+// Fallback = the deployed production frontend, so the API works on Vercel even
+// if CLIENT_ORIGIN is not configured. CLIENT_ORIGIN still overrides/extends it.
+const DEFAULT_FRONTEND_ORIGIN = "https://chattiko.vercel.app";
+
+const ALLOWED_ORIGINS = (process.env.CLIENT_ORIGIN || DEFAULT_FRONTEND_ORIGIN)
   .split(",")
-  .map((s) => s.trim())
+  .map((s) => s.trim().replace(/\/+$/, "").toLowerCase())
   .filter(Boolean);
 
 const PRIVATE_ORIGIN =
   /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/;
 
+if (process.env.NODE_ENV === "production" || process.env.VERCEL === "1") {
+  console.log(
+    "[startup] CORS allowlist =",
+    JSON.stringify(ALLOWED_ORIGINS),
+  );
+}
+
 // Reflecting any origin with credentials enabled would let an arbitrary site
 // make authenticated requests on a logged-in user's behalf.
 const isOriginAllowed = (origin) => {
   if (!origin) return true;
-  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (ALLOWED_ORIGINS.includes(origin.replace(/\/+$/, "").toLowerCase()))
+    return true;
   return PRIVATE_ORIGIN.test(origin);
 };
 
