@@ -373,6 +373,9 @@ function App() {
     });
 
     newSocket.on("messageSent", ({ tempId, message }) => {
+      // In a self-chat the server also broadcasts the saved message back as a
+      // privateMessage. Record its server id before that echo arrives.
+      if (message?.id) seenMessageIds.current.add(String(message.id));
       replaceTempMessage(tempId, message);
     });
 
@@ -489,6 +492,9 @@ function App() {
     });
 
     newSocket.on("userTyping", ({ from, groupId }) => {
+      // A self-chat sends the typing event back to the same account. Never
+      // render an indicator for the current user in any chat type.
+      if (String(from) === String(userId)) return;
       if (groupId) {
         setTypingUsers((prev) => ({
           ...prev,
@@ -1509,7 +1515,7 @@ function App() {
 
   return (
     <>
-      <div className="flex h-screen min-h-screen overflow-hidden bg-background text-white">
+      <div className="flex h-screen min-h-screen overflow-hidden bg-background pb-[72px] text-white sm:pb-0">
         <Sidebar
           userId={userId}
           avatar={profile?.avatar ? resolveMediaUrl(profile.avatar) : ""}
@@ -1519,6 +1525,7 @@ function App() {
           view={view}
           onViewChange={handleViewChange}
           unreadCount={notifications.filter((n) => !n.read).length}
+          showMobileQuickActions={!activeChatId}
         />
         {view === "chats" ? (
           <>
@@ -1628,10 +1635,7 @@ function App() {
           </>
         ) : view === "status" ? (
           <>
-            <div
-              className={`${activeStatusUser ? "hidden lg:flex" : "flex"
-                } w-full flex-col border-r border-white/10 bg-[#090b16] lg:w-[360px]`}
-            >
+            <div className="flex w-full flex-col border-r border-white/10 bg-[#090b16] lg:w-[360px]">
               <StatusScreen
                 statuses={statuses}
                 myStatuses={myStatuses}
@@ -1644,10 +1648,7 @@ function App() {
                 onOpenSidebar={() => setIsMobileSidebarOpen(true)}
               />
             </div>
-            <div
-              className={`${activeStatusUser ? "flex" : "hidden lg:flex"
-                } flex-1 flex-col bg-[#070a15]`}
-            >
+            <div className="hidden flex-1 flex-col bg-[#070a15] lg:flex">
               {activeStatusGroup ? (
                 <StatusDetail
                   group={activeStatusGroup}
@@ -1803,10 +1804,7 @@ function App() {
           </>
         ) : (
           <>
-            <div
-              className={`${selectedItemId ? "hidden lg:flex" : "flex"
-                } w-full flex-col border-r border-white/10 bg-[#090b16] lg:w-[360px]`}
-            >
+            <div className="flex w-full flex-col border-r border-white/10 bg-[#090b16] lg:w-[360px]">
               {view === "calls" && (
                 <CallsScreen
                   calls={callLogs}
@@ -1844,10 +1842,7 @@ function App() {
                 />
               )}
             </div>
-            <div
-              className={`${selectedItemId ? "flex" : "hidden lg:flex"
-                } flex-1 flex-col`}
-            >
+            <div className="hidden flex-1 flex-col lg:flex">
               {view === "calls" && (
                 <CallsDetail
                   selectedId={selectedItemId}

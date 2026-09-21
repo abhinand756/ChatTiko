@@ -40,6 +40,44 @@ function formatRecordingTime(secs) {
   return `${mins}:${remainderSecs < 10 ? "0" : ""}${remainderSecs}`;
 }
 
+function getMessageDateLabel(timestamp) {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const today = new Date();
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const startOfMessageDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const daysAgo = Math.round((startOfToday - startOfMessageDay) / 86_400_000);
+
+  if (daysAgo === 0) return "Today";
+  if (daysAgo === 1) return "Yesterday";
+  return date.toLocaleDateString([], {
+    day: "numeric",
+    month: "short",
+    year: date.getFullYear() === today.getFullYear() ? undefined : "numeric",
+  });
+}
+
+function MessageSkeletons() {
+  return (
+    <div className="space-y-3 py-2" aria-label="Loading messages" role="status">
+      {["left", "right", "left", "right", "left", "left"].map((side, index) => (
+        <div
+          key={`${side}-${index}`}
+          className={`flex ${side === "right" ? "justify-end" : "justify-start"}`}
+        >
+          <div
+            className={`h-14 animate-pulse rounded-[14px] bg-white/10 ${
+              index % 3 === 0 ? "w-52" : index % 3 === 1 ? "w-36" : "w-44"
+            }`}
+          />
+        </div>
+      ))}
+      <span className="sr-only">Loading messages</span>
+    </div>
+  );
+}
+
 function describeMessage(msg) {
   if (msg.text) return msg.text;
   switch (msg.messageType) {
@@ -183,8 +221,10 @@ export default function ChatDetail({
   const cameraInputRef = useRef(null);
   const headerMenuRef = useRef(null);
   const inputBarRef = useRef(null);
+  const messagesScrollRef = useRef(null);
 
   const [previewUrl, setPreviewUrl] = useState("");
+  const [activeMessageDate, setActiveMessageDate] = useState("");
 
   useEffect(() => {
     const previewable =
@@ -531,6 +571,23 @@ export default function ChatDetail({
     return messages.filter((m) => (m.text || "").toLowerCase().includes(q));
   }, [messages, searchQuery]);
 
+  const updateActiveMessageDate = useCallback(() => {
+    const container = messagesScrollRef.current;
+    if (!container) return;
+    const messageNodes = [...container.querySelectorAll("[data-message-date]")];
+    const containerTop = container.getBoundingClientRect().top;
+    const visibleNode = messageNodes.find(
+      (node) => node.getBoundingClientRect().bottom > containerTop + 40,
+    );
+    const label = (visibleNode || messageNodes.at(-1))?.dataset.messageDate || "";
+    setActiveMessageDate((current) => (current === label ? current : label));
+  }, []);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(updateActiveMessageDate);
+    return () => cancelAnimationFrame(frame);
+  }, [visibleMessages, isLoadingMessages, updateActiveMessageDate]);
+
   const isSelf = selectedChat === userId;
   const displayName = isGroup
     ? group?.name || selectedChat
@@ -565,7 +622,11 @@ export default function ChatDetail({
 
   const wallpaperStyle = conversationSettings.wallpaper
     ? { background: conversationSettings.wallpaper }
-    : {};
+    : {
+      backgroundColor: "#070a15",
+      backgroundImage:
+        "radial-gradient(circle at 12% 0%, rgba(99,102,241,.12), transparent 28%), radial-gradient(circle at 90% 42%, rgba(168,85,247,.07), transparent 30%)",
+    };
 
   if (!selectedChat) {
     return (
@@ -589,20 +650,20 @@ export default function ChatDetail({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-white/10 bg-[#070b17]/95 p-3 backdrop-blur-sm">
-        <div className="flex items-center justify-between gap-4">
+      <div className="sticky top-0 z-10 border-b border-white/10 bg-[#080c1a]/95 p-2 shadow-[0_1px_0_rgba(255,255,255,.03)] backdrop-blur-xl sm:p-3">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex min-w-0 items-center gap-2">
             <button
               type="button"
               onClick={onBack}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-white/5 text-white transition hover:bg-white/10 lg:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-[14px] border border-white/5 bg-white/[0.06] text-white transition hover:bg-white/10 lg:hidden sm:h-11 sm:w-11"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
             <button
               type="button"
               onClick={isGroup ? onGroupInfo : undefined}
-              className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[12px] bg-gradient-to-br from-indigo-500 to-purple-600 text-xl font-semibold text-white ${isGroup ? "cursor-pointer transition hover:opacity-90" : ""
+              className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[12px] bg-gradient-to-br from-indigo-500 to-purple-600 text-lg font-semibold text-white sm:h-12 sm:w-12 sm:text-xl ${isGroup ? "cursor-pointer transition hover:opacity-90" : ""
                 }`}
             >
               {isGroup ? (
@@ -612,7 +673,7 @@ export default function ChatDetail({
               )}
             </button>
             <div className="min-w-0">
-              <h2 className="truncate text-[18px] font-semibold capitalize text-white">
+              <h2 className="truncate text-base font-semibold capitalize text-white sm:text-[18px]">
                 {displayName}
               </h2>
               {isGroup ? (
@@ -634,14 +695,14 @@ export default function ChatDetail({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
             <button
               type="button"
               onClick={() => {
                 setSearchOpen((v) => !v);
                 setSearchQuery("");
               }}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10 hover:text-white"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-[12px] border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-10 sm:w-10"
               title="Search in chat"
             >
               <Search className="h-4 w-4" />
@@ -651,7 +712,7 @@ export default function ChatDetail({
                 <button
                   type="button"
                   onClick={() => onStartCall?.(selectedChat, "voice")}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10 hover:text-white"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-[12px] border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-10 sm:w-10"
                   title="Voice Call"
                 >
                   <Phone className="h-4 w-4" />
@@ -659,7 +720,7 @@ export default function ChatDetail({
                 <button
                   type="button"
                   onClick={() => onStartCall?.(selectedChat, "video")}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10 hover:text-white"
+                  className="hidden h-9 w-9 items-center justify-center rounded-[12px] border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10 hover:text-white sm:inline-flex sm:h-10 sm:w-10"
                   title="Video Call"
                 >
                   <Video className="h-4 w-4" />
@@ -672,7 +733,7 @@ export default function ChatDetail({
                 onClick={() =>
                   setHeaderMenu((v) => (v === "main" ? null : "main"))
                 }
-                className={`inline-flex h-10 w-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10 hover:text-white ${headerMenu ? "bg-white/10" : ""
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-[12px] border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-10 sm:w-10 ${headerMenu ? "bg-white/10" : ""
                   }`}
                 title="More options"
               >
@@ -821,9 +882,18 @@ export default function ChatDetail({
 
       {/* Messages */}
       <div
-        className="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 py-6 space-y-2"
+        ref={messagesScrollRef}
+        onScroll={updateActiveMessageDate}
+        className="flex min-h-0 flex-1 flex-col space-y-2 overflow-y-auto px-3 py-4 sm:px-6 sm:py-6"
         style={wallpaperStyle}
       >
+        {!isLoadingMessages && activeMessageDate && (
+          <div className="pointer-events-none sticky top-0 z-20 -mb-8 flex justify-center py-1">
+            <span className="rounded-full border border-white/10 bg-[#111827]/90 px-3 py-1 text-[11px] font-medium text-slate-200 shadow-lg backdrop-blur">
+              {activeMessageDate}
+            </span>
+          </div>
+        )}
         {conversationSettings?.disappearing && (
           <div className="mx-auto rounded-full border border-white/10 bg-white/5 px-3 py-1 text-center text-[11px] text-slate-300">
             <Eraser className="mr-1 inline h-3 w-3" />
@@ -847,12 +917,7 @@ export default function ChatDetail({
         )}
 
         {isLoadingMessages && (
-          <div className="flex h-full items-center justify-center">
-            <div className="relative h-10 w-10">
-              <div className="absolute inset-0 rounded-full border-4 border-white/10"></div>
-              <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-r-purple-600 border-t-primary"></div>
-            </div>
-          </div>
+          <MessageSkeletons />
         )}
 
         {!isLoadingMessages && visibleMessages.length === 0 && (
@@ -889,15 +954,13 @@ export default function ChatDetail({
             if (msg.deleted) {
               const isMe = msg.senderId === userId;
               return (
-                <div
-                  key={msg.id}
-                  className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`rounded-[10px] px-3.5 py-2.5 text-sm italic opacity-60 ${isMe ? "bg-white/5 text-slate-400" : "bg-white/5 text-slate-500"
-                      }`}
-                  >
-                    {isMe ? "You deleted this message" : `${msg.senderId} deleted this message`}
+                <div key={msg.id} data-message-date={getMessageDateLabel(msg.timestamp || msg.createdAt)}>
+                  <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                    <div
+                      className={`rounded-[10px] px-3.5 py-2.5 text-sm italic opacity-60 ${isMe ? "bg-white/5 text-slate-400" : "bg-white/5 text-slate-500"}`}
+                    >
+                      {isMe ? "You deleted this message" : `${msg.senderId} deleted this message`}
+                    </div>
                   </div>
                 </div>
               );
@@ -907,28 +970,29 @@ export default function ChatDetail({
             const senderInfo = getSenderProfile(msg.senderId);
 
             return (
-              <MessageBubble
-                key={msg.id}
-                msg={msg}
-                isMe={isMe}
-                userId={userId}
-                senderName={senderInfo.name}
-                senderAvatar={senderInfo.avatar}
-                isGroupChat={isGroup}
-                onEdit={onEditMessage}
-                onDelete={onDeleteMessage}
-                onReact={onReactToMessage}
-                onUploadImage={async (file, type) => {
-                  await onSendAttachment(file, type);
-                }}
-                onReply={(m) => setReplyToMessage?.(m)}
-                onForward={(m) => onForwardMessage?.([String(m._id ?? m.id)])}
-                onStar={onStarMessage}
-                onPin={onPinMessage}
-                onVote={onVoteInPoll}
-                onInfo={(m) => setInfoMsg(m)}
-                onCopy={copyMessage}
-              />
+              <div key={msg.id} data-message-date={getMessageDateLabel(msg.timestamp || msg.createdAt)}>
+                <MessageBubble
+                  msg={msg}
+                  isMe={isMe}
+                  userId={userId}
+                  senderName={senderInfo.name}
+                  senderAvatar={senderInfo.avatar}
+                  isGroupChat={isGroup}
+                  onEdit={onEditMessage}
+                  onDelete={onDeleteMessage}
+                  onReact={onReactToMessage}
+                  onUploadImage={async (file, type) => {
+                    await onSendAttachment(file, type);
+                  }}
+                  onReply={(m) => setReplyToMessage?.(m)}
+                  onForward={(m) => onForwardMessage?.([String(m._id ?? m.id)])}
+                  onStar={onStarMessage}
+                  onPin={onPinMessage}
+                  onVote={onVoteInPoll}
+                  onInfo={(m) => setInfoMsg(m)}
+                  onCopy={copyMessage}
+                />
+              </div>
             );
           })}
 
@@ -943,7 +1007,7 @@ export default function ChatDetail({
       </div>
 
       {/* Input Bar */}
-      <div ref={inputBarRef} className="sticky bottom-0 z-10 border-t border-white/10 bg-[#0b1220]/95 px-4 py-3 backdrop-blur-sm relative">
+      <div ref={inputBarRef} className="sticky bottom-0 z-10 border-t border-white/10 bg-[#090d1b]/95 px-3 py-2.5 shadow-[0_-8px_24px_rgba(0,0,0,.16)] backdrop-blur-xl sm:px-4 sm:py-3">
         {/* Reply banner & attachment preview — float above the input bar, no layout shift */}
         <AnimatePresence>
           {(replyToMessage || pendingAttachment) && (
@@ -953,7 +1017,7 @@ export default function ChatDetail({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 6 }}
               transition={{ duration: 0.15 }}
-              className="absolute left-0 right-0 bottom-full z-40 flex flex-col gap-1.5 px-4 pb-2"
+              className="absolute bottom-full left-0 right-0 z-40 flex flex-col gap-1.5 px-3 pb-2 sm:px-4"
             >
               {/* Attachment preview */}
               {pendingAttachment && (
@@ -1165,8 +1229,8 @@ export default function ChatDetail({
               )}
             </AnimatePresence>
 
-            <form onSubmit={handleSend} className="flex items-center gap-3">
-              <div className="flex h-14 flex-1 items-center rounded-full border border-white/10 bg-[#111827] px-3">
+            <form onSubmit={handleSend} className="flex items-center gap-2 sm:gap-3">
+              <div className="flex h-12 flex-1 items-center rounded-full border border-white/10 bg-[#111827]/95 px-2.5 shadow-inner shadow-black/10 sm:h-14 sm:px-3">
                 <input
                   ref={imageInputRef}
                   type="file"
@@ -1198,7 +1262,7 @@ export default function ChatDetail({
                 <button
                   type="button"
                   onClick={() => { setShowEmojiPicker(false); setShowSchedulePanel(false); setShowTray((v) => !v); }}
-                  className="mr-2 flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition hover:bg-white/10 hover:text-white"
+                  className="mr-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-white/10 hover:text-white sm:mr-2"
                   title="Attach"
                 >
                   <Paperclip className="h-4.5 w-4.5" size={18} />
@@ -1208,12 +1272,12 @@ export default function ChatDetail({
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   placeholder={`Message ${isSelf ? "yourself" : isGroup ? group?.name || "group" : selectedChat}...`}
-                  className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-400"
+                  className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-400"
                 />
                 <button
                   type="button"
                   onClick={() => { setShowTray(false); setShowSchedulePanel(false); setShowEmojiPicker((v) => !v); }}
-                  className="ml-1 flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition hover:bg-white/10 hover:text-white"
+                  className="ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-white/10 hover:text-white"
                   title="Emoji"
                 >
                   <Smile className="h-4.5 w-4.5" size={18} />
@@ -1221,7 +1285,7 @@ export default function ChatDetail({
                 <button
                   type="button"
                   onClick={openSchedulePanel}
-                  className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
+                  className={`hidden h-9 w-9 shrink-0 items-center justify-center rounded-full transition sm:flex ${
                     showSchedulePanel
                       ? "bg-primary/20 text-primary"
                       : "text-slate-400 hover:bg-white/10 hover:text-white"
@@ -1242,7 +1306,7 @@ export default function ChatDetail({
                     animate={{ scale: 1, rotate: 0, opacity: 1 }}
                     exit={{ scale: 0.6, rotate: 90, opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg transition disabled:opacity-40"
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/25 transition disabled:opacity-40 sm:h-14 sm:w-14"
                   >
                     {uploading ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
@@ -1274,7 +1338,7 @@ export default function ChatDetail({
                       animate={{ scale: 1, rotate: 0, opacity: 1 }}
                       exit={{ scale: 0.6, rotate: -90, opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg relative group"
+                      className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/25 sm:h-14 sm:w-14 group"
                       title="Hold to record, tap to switch mode"
                     >
                       {sendingLocation ? (

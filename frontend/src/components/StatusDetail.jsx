@@ -85,13 +85,12 @@ export default function StatusDetail({
         <ArrowLeft className="h-3.5 w-3.5" /> Back
       </button>
 
-      <div className="flex flex-col items-center px-8 py-6 text-center">
+      <div className="flex flex-col items-center px-6 py-6 text-center">
         <div
-          className={`rounded-full p-[4px] ${
-            unviewed
-              ? "bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500"
-              : "bg-white/20"
-          }`}
+          className={`rounded-full p-[4px] ${unviewed
+            ? "bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500"
+            : "bg-white/20"
+            }`}
         >
           {info.avatar ? (
             <img
@@ -110,9 +109,8 @@ export default function StatusDetail({
         </h2>
         <p className="mt-1 flex items-center gap-2 text-xs text-slate-400">
           <span
-            className={`h-2 w-2 rounded-full ${
-              isOnline ? "bg-emerald-400" : "bg-slate-500"
-            }`}
+            className={`h-2 w-2 rounded-full ${isOnline ? "bg-emerald-400" : "bg-slate-500"
+              }`}
           />
           {isOnline ? "Online now" : "Offline"}
           {list.length > 0 && ` · ${formatWhen(lastUpd?.createdAt)}`}
@@ -143,7 +141,7 @@ export default function StatusDetail({
 
       {/* Stats (owner only) */}
       {showDetails && (
-        <div className="grid grid-cols-3 gap-3 px-8">
+        <div className="grid grid-cols-3 gap-3 px-6">
           <Stat
             icon={Layers}
             label="Updates"
@@ -167,7 +165,7 @@ export default function StatusDetail({
 
       {/* Updates list */}
       {list.length > 0 && (
-        <div className="mt-8 px-8">
+        <div className="mt-6 px-6">
           <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             Updates
           </h3>
@@ -209,9 +207,8 @@ export default function StatusDetail({
                       {showDetails && (
                         <>
                           <span>·</span>
-                          <span>{`${(s.viewers || []).length} view${
-                            (s.viewers || []).length === 1 ? "" : "s"
-                          }`}</span>
+                          <span>{`${(s.viewers || []).length} view${(s.viewers || []).length === 1 ? "" : "s"
+                            }`}</span>
                         </>
                       )}
                     </p>
@@ -233,7 +230,7 @@ export default function StatusDetail({
       )}
 
       {list.length === 0 && (
-        <div className="mx-8 mt-8 rounded-[16px] border border-dashed border-white/10 bg-white/[0.02] px-6 py-8 text-center">
+        <div className="mx-6 mt-6 rounded-[16px] border border-dashed border-white/10 bg-white/[0.02] px-6 py-8 text-center">
           <Camera className="mx-auto h-8 w-8 text-slate-500" />
           <p className="mt-3 text-sm font-medium text-white">
             No active updates
@@ -246,13 +243,13 @@ export default function StatusDetail({
 
       {/* Viewers (owner only) */}
       {showDetails && stats.viewers.length > 0 && (
-        <div className="mt-8 px-8 pb-8">
+        <div className="mt-6 px-6 pb-8">
           <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-            {stats.viewers.length} viewer
-            {stats.viewers.length === 1 ? "" : "s"}
+            {stats.viewers.filter((v) => v !== userId).length} viewer
+            {stats.viewers.filter((v) => v !== userId).length === 1 ? "" : "s"}
           </h3>
           <div className="mt-2 flex flex-wrap gap-2">
-            {stats.viewers.map((v) => {
+            {stats.viewers.filter((v) => v !== userId).map((v) => {
               const viewer = allUsers.find((x) => x.username === v);
               const name = viewer?.displayName || v;
               return (

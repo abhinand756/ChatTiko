@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Plus, User, Camera, Menu } from "lucide-react";
+import { Plus, User, Camera } from "lucide-react";
 import { resolveMediaUrl } from "../api/client";
 import LogoSection from "./LogoSection";
 
@@ -123,14 +123,6 @@ export default function StatusScreen({
 
       <div className="flex items-center justify-between px-4 pb-3 pt-1">
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onOpenSidebar}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-[12px] bg-white/5 text-white transition hover:bg-white/10 lg:hidden"
-            title="Menu"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
           <div>
             <h2 className="text-lg font-semibold text-white">Updates</h2>
             <p className="mt-0.5 text-sm text-slate-400">
@@ -172,7 +164,7 @@ export default function StatusScreen({
                   : onCreateStatus?.();
               }
             }}
-            className={`flex w-full cursor-pointer items-center gap-3 rounded-[14px] px-3 py-2.5 text-left transition hover:bg-white/5 ${selectedUserId === userId ? "bg-white/5" : ""
+            className={`flex w-full cursor-pointer items-center gap-3 rounded-[14px] px-0 py-2.5 text-left ${selectedUserId === userId ? "bg-white/5" : ""
               }`}
           >
             <div className="relative">

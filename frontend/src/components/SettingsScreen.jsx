@@ -6,7 +6,6 @@ import {
   Palette,
   ChevronRight,
   Check,
-  Menu,
   Ban,
   KeyRound,
   Smartphone,
@@ -151,16 +150,6 @@ export default function SettingsScreen({
       <LogoSection onOpenSidebar={onOpenSidebar} />
 
       <div className="flex items-center gap-3 border-b border-white/10 px-5 pb-3 pt-1">
-        {onOpenSidebar && (
-          <button
-            type="button"
-            onClick={onOpenSidebar}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-[12px] bg-white/5 text-white transition hover:bg-white/10 lg:hidden"
-            title="Open Menu"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-        )}
         <div>
           <h1 className="text-xl font-semibold text-white">Settings</h1>
           <p className="mt-0.5 text-sm text-slate-400">

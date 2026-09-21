@@ -1,4 +1,4 @@
-import { Bell, MessageSquare, Phone, UserPlus, Check, Menu } from "lucide-react";
+import { Bell, MessageSquare, Phone, UserPlus, Check } from "lucide-react";
 import LogoSection from "./LogoSection";
 
 export default function NotificationsScreen({
@@ -29,16 +29,6 @@ export default function NotificationsScreen({
 
       <div className="flex items-center justify-between border-b border-white/10 px-5 pb-3 pt-1">
         <div className="flex items-center gap-3">
-          {onOpenSidebar && (
-            <button
-              type="button"
-              onClick={onOpenSidebar}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-[12px] bg-white/5 text-white transition hover:bg-white/10 lg:hidden"
-              title="Open Menu"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-          )}
           <div>
             <h1 className="text-xl font-semibold text-white">Notifications</h1>
             <p className="mt-0.5 text-sm text-slate-400">
@@ -46,7 +36,7 @@ export default function NotificationsScreen({
             </p>
           </div>
         </div>
-{unread > 0 && (
+        {unread > 0 && (
           <button
             type="button"
             onClick={onMarkAllRead}
@@ -78,10 +68,10 @@ export default function NotificationsScreen({
                 type="button"
                 onClick={() => onSelect?.(n)}
                 className={`flex w-full items-start gap-3 rounded-[12px] border px-3 py-3 text-left transition hover:border-primary/50 hover:bg-white/5 ${selectedId === n.id
-                    ? "border-primary bg-white/10"
-                    : n.read
-                      ? "border-white/5 bg-white/[0.02]"
-                      : "border-primary/30 bg-white/[0.05]"
+                  ? "border-primary bg-white/10"
+                  : n.read
+                    ? "border-white/5 bg-white/[0.02]"
+                    : "border-primary/30 bg-white/[0.05]"
                   }`}
               >
                 <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/5 text-slate-300">

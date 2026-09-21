@@ -9,6 +9,7 @@ import {
   Menu,
 } from "lucide-react";
 import { resolveMediaUrl } from "../api/client";
+import LogoSection from "./LogoSection";
 
 const Field = ({ label, children }) => (
   <div className="flex items-start justify-between gap-3 py-2.5">
@@ -51,9 +52,12 @@ export default function ProfileDetail({
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="px-7 py-7">
+      <div className="border-b border-white/10 lg:hidden">
+        <LogoSection onOpenSidebar={onOpenSidebar} />
+      </div>
+      <div className="px-4 py-4 sm:px-7 sm:py-7">
         {/* Cover */}
-        <div className="relative h-44 w-full overflow-hidden rounded-[18px] bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500">
+        <div className="relative h-36 w-full overflow-hidden rounded-[18px] bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 sm:h-44">
           {onOpenSidebar && (
             <button
               type="button"

@@ -33,7 +33,7 @@ export default function ForwardModal({
         exit={{ opacity: 0 }}
         onClick={onClose}
         className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-        style={{ background: "rgba(4,6,20,0.82)", backdropFilter: "blur(14px)" }}
+        style={{ background: "rgba(24, 27, 48, 0.18)", backdropFilter: "blur(10px)" }}
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}

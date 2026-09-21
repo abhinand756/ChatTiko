@@ -7,7 +7,7 @@ const LogoSection = ({ onOpenSidebar }) => {
                 <button
                     type="button"
                     onClick={onOpenSidebar}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-[12px] bg-white/5 text-white transition hover:bg-white/10 lg:hidden ml-2"
+                    className="ml-2 hidden h-10 w-10 items-center justify-center rounded-[12px] bg-white/5 text-white transition hover:bg-white/10 sm:inline-flex lg:hidden"
                     title="Open Menu"
                 >
                     <Menu className="h-5 w-5" />

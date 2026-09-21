@@ -193,7 +193,7 @@ export default function UserDirectory({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 pb-4 pt-3 space-y-6">
+        <div className="flex-1 overflow-y-auto px-4 pb-4 pt-3 space-y-4">
           {incomingRequests.length > 0 && (
             <div className="space-y-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-indigo-400 px-1">

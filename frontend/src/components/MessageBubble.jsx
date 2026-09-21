@@ -348,7 +348,7 @@ export default function MessageBubble({
     >
       <div
         ref={bubbleRef}
-        className={`relative max-w-[70%] sm:max-w-[60%] ${isMe ? "items-end" : "items-start"}`}
+        className={`relative max-w-[82%] sm:max-w-[60%] ${isMe ? "items-end" : "items-start"}`}
         onMouseLeave={() => {
           setShowEmojis(false);
         }}
