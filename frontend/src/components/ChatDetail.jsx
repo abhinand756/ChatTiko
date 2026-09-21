@@ -401,6 +401,8 @@ export default function ChatDetail({
       await onSendAttachment(pendingAttachment, attachmentType);
       setPendingAttachment(null);
       setAttachmentType(null);
+    } catch (error) {
+      showToast(error.message || "Could not upload attachment. Please try again.", "error");
     } finally {
       setUploading(false);
     }
@@ -942,61 +944,7 @@ export default function ChatDetail({
 
       {/* Input Bar */}
       <div ref={inputBarRef} className="sticky bottom-0 z-10 border-t border-white/10 bg-[#0b1220]/95 px-4 py-3 backdrop-blur-sm relative">
-        {/* Attachment preview */}
-        <AnimatePresence>
-          {pendingAttachment && (
-            <motion.div
-              initial={{ opacity: 0, y: 8, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.98 }}
-              className="mb-2 flex items-center gap-3 rounded-[14px] border border-white/10 bg-[#111827] p-3"
-            >
-              {attachmentType === "image" ? (
-                <img
-                  src={previewUrl}
-                  alt="preview"
-                  className="h-12 w-12 rounded-[10px] object-cover"
-                />
-              ) : attachmentType === "video" || attachmentType === "circular_video" ? (
-                <video
-                  src={previewUrl}
-                  className={`h-12 w-12 object-cover ${
-                    attachmentType === "circular_video"
-                      ? "rounded-full"
-                      : "rounded-[10px]"
-                  }`}
-                  muted
-                  playsInline
-                />
-              ) : (
-                <div className="flex h-12 w-12 items-center justify-center rounded-[10px] bg-purple-500/20 text-purple-300">
-                  <Paperclip className="h-5 w-5" />
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-white">
-                  {pendingAttachment.name}
-                </p>
-                <p className="text-xs text-slate-400">
-                  {(pendingAttachment.size / 1024).toFixed(1)} KB · Ready to send
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setPendingAttachment(null);
-                  setAttachmentType(null);
-                }}
-                className="flex h-8 w-8 items-center justify-center rounded-[10px] text-slate-400 transition hover:bg-white/10 hover:text-white"
-                title="Remove"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Reply banner & Attachment preview — float above the input bar, no layout shift */}
+        {/* Reply banner & attachment preview — float above the input bar, no layout shift */}
         <AnimatePresence>
           {(replyToMessage || pendingAttachment) && (
             <motion.div

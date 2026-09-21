@@ -36,9 +36,11 @@ export async function saveUploadedFile(file, { username, folder = "general" } = 
   // shared between invocations. Never report a successful upload there: the
   // returned /uploads URL would disappear after a recycle or a new deployment.
   if (process.env.VERCEL === "1" && !USE_BLOB) {
-    throw new Error(
+    const error = new Error(
       "Persistent upload storage is not configured. Connect Vercel Blob and set BLOB_READ_WRITE_TOKEN.",
     );
+    error.code = "UPLOAD_STORAGE_NOT_CONFIGURED";
+    throw error;
   }
 
   if (USE_BLOB) {

@@ -1115,8 +1115,8 @@ function App() {
         credentials: "include",
         body: formData,
       });
-      if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Upload failed");
 
       const isImage = type === "image";
       const isVideo = type === "video";
@@ -1162,6 +1162,7 @@ function App() {
       }
     } catch (e) {
       console.error("Failed to send attachment:", e);
+      throw e;
     }
   };
 

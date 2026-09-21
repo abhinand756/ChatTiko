@@ -900,6 +900,9 @@ app.post(
       });
     } catch (error) {
       console.error("Failed to upload file:", error);
+      if (error.code === "UPLOAD_STORAGE_NOT_CONFIGURED") {
+        return res.status(503).json({ error: error.message });
+      }
       res.status(500).json({ error: "Failed to upload file" });
     }
   },
@@ -929,6 +932,10 @@ app.post(
         fileType: req.file.mimetype,
       });
     } catch (error) {
+      console.error("Failed to upload group file:", error);
+      if (error.code === "UPLOAD_STORAGE_NOT_CONFIGURED") {
+        return res.status(503).json({ error: error.message });
+      }
       res.status(500).json({ error: "Failed to upload file" });
     }
   },
