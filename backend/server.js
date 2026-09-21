@@ -1821,9 +1821,23 @@ if (isMain) {
       console.log("Error connecting to MongoDB", error.message);
     });
 } else {
-  connectDB().catch((error) => {
-    console.error("[startup] MongoDB connection failed:", error.message);
-  });
+  // Vercel entry: don't block module load, but keep trying to reach Mongo in
+  // the background so a transient cold-start failure (DNS, Atlas latency) heals
+  // itself instead of leaving every query to buffer and time out.
+  (async () => {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        await connectDB();
+        console.log("[startup] Connected to MongoDB");
+        break;
+      } catch (error) {
+        console.error(
+          `[startup] MongoDB connect attempt ${attempt} failed: ${error.message}`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+      }
+    }
+  })();
 }
 
 export { app, server };
