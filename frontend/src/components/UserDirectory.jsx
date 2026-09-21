@@ -32,9 +32,8 @@ function Avatar({ user, size = "h-10 w-10 text-base", isOnline, showPresence = f
       </div>
       {showPresence && (
         <span
-          className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full ring-2 ring-[#0b1220] ${
-            isOnline ? "bg-emerald-400" : "bg-slate-500"
-          }`}
+          className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full ring-2 ring-[#0b1220] ${isOnline ? "bg-emerald-400" : "bg-slate-500"
+            }`}
         />
       )}
     </div>
@@ -58,12 +57,12 @@ export default function UserDirectory({
   const query = searchQuery.trim().toLowerCase();
   const filteredUsers = query
     ? users.filter((user) => {
-        const displayName = (user.displayName || "").toLowerCase();
-        return (
-          user.username.toLowerCase().includes(query) ||
-          displayName.includes(query)
-        );
-      })
+      const displayName = (user.displayName || "").toLowerCase();
+      return (
+        user.username.toLowerCase().includes(query) ||
+        displayName.includes(query)
+      );
+    })
     : users;
 
   const incomingRequests = filteredUsers.filter(
@@ -146,23 +145,22 @@ export default function UserDirectory({
                   <Ban className="h-4 w-4" />
                 </button>
               </div>
-            ) : isPendingOutgoing ? (
-              <button
-                type="button"
-                onClick={() => onUnfriend?.(user.username)}
-                className="rounded-[10px] border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-300 transition hover:border-rose-500/30 hover:bg-rose-500/20 hover:text-rose-400"
-              >
-                Cancel Request
-              </button>
             ) : (
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => onSendRequest?.(user.username)}
-                  className="rounded-[10px] bg-gradient-to-br from-primary to-purple-600 px-4 py-2 text-sm text-white transition hover:brightness-110"
-                >
-                  Connect
-                </button>
+                {isPendingOutgoing ?
+                  <button
+                    type="button"
+                    onClick={() => onUnfriend?.(user.username)}
+                    className="rounded-[10px] border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-300 transition hover:border-rose-500/30 hover:bg-rose-500/20 hover:text-rose-400"
+                  >
+                    Requested
+                  </button> : <button
+                    type="button"
+                    onClick={() => onSendRequest?.(user.username)}
+                    className="rounded-[10px] bg-gradient-to-br from-primary to-purple-600 px-4 py-2 text-sm text-white transition hover:brightness-110"
+                  >
+                    Connect
+                  </button>}
                 <button
                   type="button"
                   onClick={() => onBlock?.(user.username)}

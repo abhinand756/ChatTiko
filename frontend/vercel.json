@@ -15,6 +15,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://api-chattiko.vercel.app/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://api-chattiko.vercel.app/uploads/:path*"
     }
   ]
 }

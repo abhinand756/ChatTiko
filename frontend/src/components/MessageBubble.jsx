@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Check,
@@ -20,6 +21,7 @@ import {
   Info,
   Globe,
   Loader2,
+  ImageOff,
 } from "lucide-react";
 import AudioPlayer from "./AudioPlayer";
 import EmojiReactionBar from "./EmojiReactionBar";
@@ -188,6 +190,8 @@ export default function MessageBubble({
   const [translating, setTranslating] = useState(false);
   const [translation, setTranslation] = useState(null);
   const [translateError, setTranslateError] = useState(false);
+  const [failedImageUrl, setFailedImageUrl] = useState("");
+  const [lightboxImage, setLightboxImage] = useState(null);
   const imageInputRef = useRef(null);
   const menuRef = useRef(null);
   const bubbleRef = useRef(null);
@@ -213,6 +217,17 @@ export default function MessageBubble({
     }, 0);
     return () => clearTimeout(id);
   }, [msg.text]);
+
+  const imageUrl = resolveMediaUrl(msg.imageUrl);
+
+  useEffect(() => {
+    if (!lightboxImage) return;
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setLightboxImage(null);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [lightboxImage]);
 
   const runTranslate = () => {
     if (translation) {
@@ -324,6 +339,7 @@ export default function MessageBubble({
   };
 
   return (
+    <>
     <motion.div
       initial={{ opacity: 0, y: 10, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -521,18 +537,27 @@ export default function MessageBubble({
               className={`overflow-hidden rounded-[10px] border ${isMe ? "border-primary/30" : "border-white/10"
                 } shadow-lg`}
             >
-              <a
-                href={resolveMediaUrl(msg.imageUrl)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <img
-                  src={resolveMediaUrl(msg.imageUrl)}
-                  alt={msg.text || "Image"}
-                  className="max-h-[340px] max-w-full cursor-pointer object-cover transition duration-300 hover:opacity-95"
-                  loading="lazy"
-                />
-              </a>
+              {imageUrl && failedImageUrl !== imageUrl ? (
+                <button
+                  type="button"
+                  onClick={() => setLightboxImage(imageUrl)}
+                  className="block max-w-full cursor-zoom-in"
+                  aria-label="Open image"
+                >
+                  <img
+                    src={imageUrl}
+                    alt={msg.text || "Image"}
+                    className="max-h-[340px] max-w-full object-cover transition duration-300 hover:opacity-95"
+                    loading="lazy"
+                    onError={() => setFailedImageUrl(imageUrl)}
+                  />
+                </button>
+              ) : (
+                <div className="flex h-40 w-56 flex-col items-center justify-center gap-2 bg-slate-950/40 px-4 text-center text-xs text-slate-400">
+                  <ImageOff className="h-6 w-6 text-slate-500" aria-hidden="true" />
+                  <span>Image unavailable</span>
+                </div>
+              )}
             </div>
           ) : isCircularVideo ? (
             <div
@@ -771,5 +796,35 @@ export default function MessageBubble({
         )}
       </div>
     </motion.div>
+    {lightboxImage && createPortal(
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Image preview"
+        onClick={() => setLightboxImage(null)}
+      >
+        <button
+          type="button"
+          onClick={() => setLightboxImage(null)}
+          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+          aria-label="Close image preview"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <img
+          src={lightboxImage}
+          alt={msg.text || "Image preview"}
+          className="max-h-full max-w-full rounded-lg object-contain shadow-2xl"
+          onClick={(event) => event.stopPropagation()}
+          onError={() => {
+            setFailedImageUrl(lightboxImage);
+            setLightboxImage(null);
+          }}
+        />
+      </div>,
+      document.body,
+    )}
+    </>
   );
 }
