@@ -63,12 +63,19 @@ const SOCKET_URL = getApiBase().replace(/\/+$/, "");
 // backend through the frontend's own origin, so the auth cookie stays first-party.
 const SOCKET_PATH = import.meta.env.VITE_SOCKET_PATH || "/socket.io";
 
-// polling first, then upgrade to websocket when the platform supports it.
-// (Vercel's same-origin proxy handles websocket upgrades locally but may fall
-// back to polling — both are supported, so realtime keeps working.)
-const SOCKET_TRANSPORTS = import.meta.env.VITE_SOCKET_TRANSPORTS
-  ? import.meta.env.VITE_SOCKET_TRANSPORTS.split(",")
-  : ["polling", "websocket"];
+// A Vercel Function can serve an established WebSocket connection, but HTTP
+// polling requests are independent invocations. Socket.IO's polling handshake
+// stores its Engine.IO session id in process memory, so a later poll may hit a
+// different function instance and fail with "Session ID unknown". Use WebSocket
+// only for Vercel's same-origin proxy; local development and an explicit
+// external socket host retain the configurable polling fallback.
+const USE_VERCEL_SOCKET_PROXY =
+  import.meta.env.PROD && !import.meta.env.VITE_SOCKET_URL;
+const SOCKET_TRANSPORTS = USE_VERCEL_SOCKET_PROXY
+  ? ["websocket"]
+  : import.meta.env.VITE_SOCKET_TRANSPORTS
+    ? import.meta.env.VITE_SOCKET_TRANSPORTS.split(",")
+    : ["polling", "websocket"];
 
 function App() {
   const [messages, setMessages] = useState([]);
