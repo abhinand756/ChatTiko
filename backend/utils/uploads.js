@@ -32,6 +32,15 @@ export async function saveUploadedFile(file, { username, folder = "general" } = 
     .toString(36)
     .slice(2, 8)}${sanitizeExt(file.originalname)}`;
 
+  // A Vercel Function's filesystem (including /tmp) is not durable and is not
+  // shared between invocations. Never report a successful upload there: the
+  // returned /uploads URL would disappear after a recycle or a new deployment.
+  if (process.env.VERCEL === "1" && !USE_BLOB) {
+    throw new Error(
+      "Persistent upload storage is not configured. Connect Vercel Blob and set BLOB_READ_WRITE_TOKEN.",
+    );
+  }
+
   if (USE_BLOB) {
     const blob = await put(key, file.buffer, {
       access: "public",
