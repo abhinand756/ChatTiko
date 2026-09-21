@@ -1,12 +1,20 @@
 {
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://api-chattiko.vercel.app/api/:path*"
+      "source": "/socket.io",
+      "destination": "https://api-chattiko.vercel.app/socket.io"
+    },
+    {
+      "source": "/socket.io/",
+      "destination": "https://api-chattiko.vercel.app/socket.io/"
     },
     {
       "source": "/socket.io/:path*",
       "destination": "https://api-chattiko.vercel.app/socket.io/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://api-chattiko.vercel.app/api/:path*"
     }
   ]
 }

@@ -732,6 +732,7 @@ function App() {
       .filter(
         (user) =>
           user.username !== userId &&
+          user.connectionStatus === "accepted" &&
           !conversations.some((conv) => conv.id === user.username),
       )
       .map((user) => ({
