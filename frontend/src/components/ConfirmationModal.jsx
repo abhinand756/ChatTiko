@@ -24,8 +24,8 @@ export default function ConfirmationModal({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
           onClick={onClose}
-          className="fixed inset-0 z-50 flex items-center justify-center p-6"
-          style={{ background: "rgba(22, 24, 33, 0.43)", backdropFilter: "blur(10px)" }}
+          className="fixed inset-0 z-[90] flex items-center justify-center p-6"
+          style={{ background: "rgba(22, 24, 33, 0.2)", backdropFilter: "blur(10px)" }}
         >
           <motion.div
             key="modal-card"

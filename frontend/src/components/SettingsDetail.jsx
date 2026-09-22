@@ -25,15 +25,6 @@ import {
 } from "../api/sessionsApi";
 import { getCurrentUser } from "../api/userApi";
 
-const SETTINGS_CARDS = [
-  { label: "Notifications", desc: "Message & call alerts", key: "preferences:Notifications", icon: "🔔" },
-  { label: "Read receipts", desc: "Seen indicators", key: "preferences:Read receipts", icon: "✓" },
-  { label: "Blocked users", desc: "Privacy controls", key: "privacy:Blocked users", icon: "🚫" },
-  { label: "Change password", desc: "Account security", key: "privacy:Change password", icon: "🔑" },
-  { label: "Active sessions", desc: "Review logged-in devices", key: "privacy:Active sessions", icon: "📱" },
-  { label: "Two-step verification", desc: "Extra account protection", key: "privacy:Two-step verification", icon: "🔒" },
-];
-
 function PasswordChangeDetail({ onDone }) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -160,14 +151,14 @@ function ThemeAccentPicker({ prefs, onTogglePref }) {
         <Settings className="h-8 w-8" />
       </div>
       <h2 className="mt-5 text-2xl font-semibold text-white">Theme accent</h2>
-      <p className="mt-2 max-w-[340px] text-center text-sm text-slate-400">
+      <p className="mt-1 max-w-[340px] text-center text-sm text-slate-400">
         Pick your preferred accent color.
       </p>
-      <div className="mt-7 flex flex-wrap justify-center gap-3">
+      <div className="mt-6 flex flex-wrap justify-center gap-3">
         {accents.map((accent) => {
           const active = (prefs?.themeAccent || "violet") === accent;
           return (
-            <button key={accent} type="button" onClick={() => onTogglePref("themeAccent", accent)} className={`flex h-14 w-14 items-center justify-center rounded-[16px] bg-gradient-to-br capitalize text-white transition ${colors[accent]} ${active ? "ring-2 ring-white ring-offset-2 ring-offset-[#0f1428]" : "opacity-80 hover:scale-105"}`}>
+            <button key={accent} type="button" onClick={() => onTogglePref("themeAccent", accent)} className={`flex h-12 w-12 items-center justify-center rounded-[16px] bg-gradient-to-br capitalize text-white transition ${colors[accent]} ${active ? "ring-2 ring-white ring-offset-2 ring-offset-[#0f1428]" : "opacity-80 hover:scale-105"}`}>
               {active && <Check className="h-5 w-5" />}
             </button>
           );
@@ -524,6 +515,15 @@ function TwoStepDetail() {
     </div>
   );
 }
+
+const SETTINGS_CARDS = [
+  { label: "Notifications", desc: "Message & call alerts", key: "preferences:Notifications", icon: "🔔" },
+  { label: "Read receipts", desc: "Seen indicators", key: "preferences:Read receipts", icon: "✓" },
+  { label: "Blocked users", desc: "Privacy controls", key: "privacy:Blocked users", icon: "🚫" },
+  { label: "Change password", desc: "Account security", key: "privacy:Change password", icon: "🔑" },
+  { label: "Active sessions", desc: "Review logged-in devices", key: "privacy:Active sessions", icon: "📱" },
+  { label: "Two-step verification", desc: "Extra account protection", key: "privacy:Two-step verification", icon: "🔒" },
+];
 
 export default function SettingsDetail({
   selectedId,

@@ -92,14 +92,19 @@ export default function CallsDetail({
     const mostRecent = partnerCalls[0]; // already sorted desc
 
     return (
-      <div className="flex flex-1 flex-col items-center justify-center px-10 py-8">
-        <button
-          type="button"
-          onClick={onBack}
-          className="mb-4 inline-flex items-center gap-1.5 rounded-[12px] border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-300 transition hover:bg-white/10 lg:hidden"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back
-        </button>
+      <div className="flex flex-1 flex-col">
+        <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white"
+            aria-label="Back"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <span className="text-sm text-slate-400">Calls</span>
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 py-8">
         <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-4xl font-bold text-white shadow-xl shadow-purple-900/30">
           {partner.charAt(0).toUpperCase()}
         </div>
@@ -174,6 +179,7 @@ export default function CallsDetail({
             <MessageSquare className="h-4 w-4" />
             Open chat with {partner}
           </button>
+        </div>
         </div>
       </div>
     );

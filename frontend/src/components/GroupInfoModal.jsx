@@ -124,10 +124,10 @@ export default function GroupInfoModal({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.22 }}
           onClick={onClose}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[90] flex items-center justify-center p-4"
           style={{
-            background: "rgba(4, 6, 20, 0.82)",
-            backdropFilter: "blur(14px)",
+            background: "rgba(4, 6, 20, 0.2)",
+            backdropFilter: "blur(10px)",
           }}
         >
           <motion.div

@@ -13,7 +13,7 @@ export default function IncomingCallModal({
   const isVideo = callType === "video";
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
       <div className="relative w-full max-w-sm overflow-hidden rounded-[28px] border border-white/10 bg-[#0f1326]/95 p-6 text-white text-center shadow-2xl shadow-black/90">
         {/* Ringing pulse animation background */}
         <div className="relative mx-auto mb-6 flex h-24 w-24 items-center justify-center">

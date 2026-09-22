@@ -10,8 +10,11 @@ import {
   Play,
   CheckCheck,
   ChevronRight,
+  Bell,
+  User,
 } from "lucide-react";
 import { resolveMediaUrl } from "../api/client";
+import LogoSection from "./LogoSection";
 
 function formatWhen(ts) {
   if (!ts) return "";
@@ -42,6 +45,11 @@ export default function StatusDetail({
   onStartCall,
   onOpenChat,
   onBack,
+  onOpenSidebar,
+  userAvatar = "",
+  unreadCount = 0,
+  onOpenNotifications,
+  onOpenProfile,
 }) {
   const ownerId = group.userId;
   const list = useMemo(() => group.list || [], [group]);
@@ -77,12 +85,46 @@ export default function StatusDetail({
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
+      <div className="flex items-center gap-1 border-b border-white/10 pr-3">
+        <div className="min-w-0 flex-1">
+          <LogoSection onOpenSidebar={onOpenSidebar} className="px-0!" />
+        </div>
+        <button
+          type="button"
+          onClick={onOpenNotifications}
+          className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10"
+          aria-label="Notifications"
+        >
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-none text-white ring-2 ring-[#070a15]">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={onOpenProfile}
+          className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:ring-2 hover:ring-primary/50"
+          aria-label="Profile"
+        >
+          {userAvatar ? (
+            <img src={userAvatar} alt="" className="h-full w-full object-cover" />
+          ) : userId ? (
+            userId.charAt(0).toUpperCase()
+          ) : (
+            <User className="h-5 w-5" />
+          )}
+        </button>
+      </div>
+
       <button
         type="button"
         onClick={onBack}
-        className="mb-2 mt-3 ml-3 inline-flex w-fit items-center gap-1.5 rounded-[12px] border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-300 transition hover:bg-white/10 lg:hidden"
+        className="absolute left-2 top-[80px] inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] text-slate-300 transition hover:bg-white/10 lg:hidden"
+        aria-label="Back"
       >
-        <ArrowLeft className="h-3.5 w-3.5" /> Back
+        <ArrowLeft className="h-5 w-5" />
       </button>
 
       <div className="flex flex-col items-center px-6 py-6 text-center">
@@ -107,7 +149,7 @@ export default function StatusDetail({
         <h2 className="mt-4 text-xl font-semibold capitalize text-white">
           {info.name}
         </h2>
-        <p className="mt-1 flex items-center gap-2 text-xs text-slate-400">
+        <p className="mt-1 flex items-center gap-1 text-xs text-slate-400">
           <span
             className={`h-2 w-2 rounded-full ${isOnline ? "bg-emerald-400" : "bg-slate-500"
               }`}

@@ -44,8 +44,8 @@ export default function MessageInfoModal({ isOpen, onClose, msg }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 z-[70] flex items-center justify-center p-4"
-          style={{ background: "rgba(4,6,20,0.7)", backdropFilter: "blur(10px)" }}
+          className="fixed inset-0 z-[90] flex items-center justify-center p-4"
+          style={{ background: "rgba(4,6,20,0.2)", backdropFilter: "blur(10px)" }}
         >
           <motion.div
             role="dialog"

@@ -6,6 +6,7 @@ import {
   Shield,
   Sparkles,
   Users,
+  ArrowLeft,
 } from "lucide-react";
 
 const TYPE_META = {
@@ -15,14 +16,25 @@ const TYPE_META = {
   request: { icon: UserPlus, color: "text-amber-400", bg: "bg-amber-500/10" },
 };
 
-export default function NotificationsDetail({ selectedId, notifications }) {
+export default function NotificationsDetail({ selectedId, notifications, onBack }) {
   const selected = notifications?.find?.((n) => n.id === selectedId);
 
   if (selected) {
     const meta = TYPE_META[selected.type] || TYPE_META.status;
     const MetaIcon = meta.icon;
     return (
-      <div className="flex flex-1 flex-col items-center justify-center px-10 py-8 text-center">
+      <div className="flex flex-1 flex-col">
+        <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <span className="text-sm text-slate-400">Notifications</span>
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center px-10 py-8 text-center">
         <div
           className={`flex h-20 w-20 items-center justify-center rounded-full ${meta.bg} ${meta.color}`}
         >
@@ -45,6 +57,7 @@ export default function NotificationsDetail({ selectedId, notifications }) {
               Status: {selected.read ? "Read" : "Unread"}
             </span>
           </div>
+        </div>
         </div>
       </div>
     );

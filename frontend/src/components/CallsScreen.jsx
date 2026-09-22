@@ -206,7 +206,7 @@ export default function CallsScreen({
       {showCallPicker && (
         <div
           className="fixed inset-0 z-[70] flex items-center justify-center p-4"
-          style={{ background: "rgba(4,6,20,0.8)", backdropFilter: "blur(10px)" }}
+          style={{ background: "rgba(4,6,20,0.2)", backdropFilter: "blur(10px)" }}
           onClick={() => setShowCallPicker(false)}
         >
           <div

@@ -1,8 +1,8 @@
 import { Menu } from 'lucide-react'
 
-const LogoSection = ({ onOpenSidebar }) => {
+const LogoSection = ({ onOpenSidebar, className }) => {
     return (
-        <div className="w-full flex justify-between items-center px-2 py-1">
+        <div className={`w-full flex justify-between items-center px-2 py-1 ${className}`}>
             <div className="flex items-center gap-1">
                 <button
                     type="button"
@@ -16,7 +16,7 @@ const LogoSection = ({ onOpenSidebar }) => {
                     src="/images/chattiko-linear.png"
                     alt="logo"
                     width={210}
-                    className="max-h-[75px] object-cover"
+                    className="max-h-[60px] sm:max-h-[75px] object-cover"
                 />
             </div>
         </div>

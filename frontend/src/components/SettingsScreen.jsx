@@ -1,7 +1,6 @@
 import {
   Bell,
   Volume2,
-  Shield,
   Moon,
   Palette,
   ChevronRight,
@@ -111,12 +110,6 @@ export default function SettingsScreen({
       id: "privacy",
       title: "Privacy",
       items: [
-        {
-          icon: Shield,
-          label: "Privacy & security",
-          desc: "Manage session and devices",
-          chevron: true,
-        },
         {
           icon: Ban,
           label: "Blocked users",

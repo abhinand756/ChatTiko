@@ -7,6 +7,7 @@ import {
   MessageSquare,
   Pencil,
   LogOut,
+  Eye,
 } from "lucide-react";
 import { resolveMediaUrl } from "../api/client";
 import LogoSection from "./LogoSection";
@@ -82,6 +83,7 @@ export default function ProfileScreen({
   editingField,
   onSelectEdit,
   onOpenSidebar,
+  onViewProfile,
 }) {
   const avatarInputRef = useRef(null);
   const [nameDraft, setNameDraft] = useState(profile?.displayName || "");
@@ -148,6 +150,16 @@ export default function ProfileScreen({
             <h2 className="text-2xl font-bold text-white capitalize">{profile?.displayName}</h2>
             <p className="text-xs text-slate-500">@{userId}</p>
           </div>
+
+          {/* View full profile (mobile only) */}
+          <button
+            type="button"
+            onClick={onViewProfile}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-[12px] border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/10 lg:hidden"
+          >
+            <Eye className="h-4 w-4" />
+            View full profile
+          </button>
 
           {/* Editable fields */}
           <div className="mt-5 w-full space-y-2">

@@ -43,7 +43,7 @@ export default function CallOverlay({
       : "Calling...";
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/90 backdrop-blur-xl animate-in fade-in duration-300">
       <div className="relative flex h-full w-full max-w-4xl max-h-[85vh] flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#090d1f] text-white shadow-2xl">
         {/* Call Header */}
         <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-6 bg-gradient-to-b from-black/80 to-transparent">

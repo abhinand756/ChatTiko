@@ -6,7 +6,7 @@ import {
   User,
   MessageSquare,
   Phone,
-  Menu,
+  ArrowLeft,
 } from "lucide-react";
 import { resolveMediaUrl } from "../api/client";
 import LogoSection from "./LogoSection";
@@ -27,6 +27,7 @@ export default function ProfileDetail({
   onEdit,
   friendsCount,
   onOpenSidebar,
+  onBack,
 }) {
   const avatarInputRef = useRef(null);
   const coverInputRef = useRef(null);
@@ -51,23 +52,23 @@ export default function ProfileDetail({
   const name = profile?.displayName || userId || "-";
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="border-b border-white/10 lg:hidden">
-        <LogoSection onOpenSidebar={onOpenSidebar} />
+    <div className="flex flex-1 flex-col overflow-y-auto">
+      <div className="flex items-center gap-1 border-b border-white/10 py-1 pl-1 pr-2 lg:hidden">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] text-slate-300 transition hover:bg-white/10"
+          aria-label="Back"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <div className="min-w-0 flex-1">
+          <LogoSection onOpenSidebar={onOpenSidebar} />
+        </div>
       </div>
       <div className="px-4 py-4 sm:px-7 sm:py-7">
         {/* Cover */}
         <div className="relative h-36 w-full overflow-hidden rounded-[18px] bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 sm:h-44">
-          {onOpenSidebar && (
-            <button
-              type="button"
-              onClick={onOpenSidebar}
-              className="absolute top-3 left-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition hover:bg-black/60 lg:hidden"
-              title="Open Menu"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-          )}
           {coverUrl ? (
             <img
               src={coverUrl}

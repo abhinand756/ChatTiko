@@ -185,7 +185,7 @@ export default function StatusViewer({
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.96, opacity: 0 }}
           transition={{ duration: 0.25 }}
-          className="relative flex h-full max-h-[min(92vh,760px)] w-full max-w-[420px] flex-col overflow-hidden rounded-[20px] border border-white/10"
+          className="relative flex h-full w-full flex-col overflow-hidden"
           style={{
             background: isText
               ? `linear-gradient(135deg, ${current.background || "#7c3aed"}, ${current.background || "#7c3aed"}cc)`

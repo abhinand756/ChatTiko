@@ -36,39 +36,38 @@ export default function Sidebar({
 }) {
   return (
     <>
-      {showMobileQuickActions && <div className="fixed right-3 top-3 z-[60] flex items-center gap-2 sm:hidden">
-        <button
-          type="button"
-          onClick={() => onViewChange("notifications")}
-          className={`relative flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#111827]/95 backdrop-blur transition ${
-            view === "notifications" ? "text-primary" : "text-slate-200"
-          }`}
-          aria-label="Alerts"
-        >
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-none text-white ring-2 ring-[#070b17]">
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </span>
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => onViewChange("profile")}
-          className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-semibold text-white ring-1 ring-white/10 transition ${
-            view === "profile" ? "ring-2 ring-primary" : ""
-          }`}
-          aria-label="Profile"
-        >
-          {avatar ? (
-            <img src={avatar} alt="" className="h-full w-full object-cover" />
-          ) : userId ? (
-            userId.charAt(0).toUpperCase()
-          ) : (
-            <User className="h-5 w-5" />
-          )}
-        </button>
-      </div>}
+      {showMobileQuickActions &&
+        <div className="fixed right-3 top-4 z-[40] flex items-center gap-2 sm:hidden">
+          <button
+            type="button"
+            onClick={() => onViewChange("notifications")}
+            className={`relative flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#111827]/95 backdrop-blur transition ${view === "notifications" ? "text-primary" : "text-slate-200"
+              }`}
+            aria-label="Alerts"
+          >
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-none text-white ring-2 ring-[#070b17]">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => onViewChange("profile")}
+            className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-semibold text-white ring-1 ring-white/10 transition ${view === "profile" ? "ring-2 ring-primary" : ""
+              }`}
+            aria-label="Profile"
+          >
+            {avatar ? (
+              <img src={avatar} alt="" className="h-full w-full object-cover" />
+            ) : userId ? (
+              userId.charAt(0).toUpperCase()
+            ) : (
+              <User className="h-5 w-5" />
+            )}
+          </button>
+        </div>}
 
       <nav className="fixed inset-x-0 bottom-0 z-50 flex h-[72px] items-center border-t border-white/10 bg-[#070b17]/95 px-1 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden">
         {MOBILE_NAV_ITEMS.map(({ id, label, Icon }) => {
@@ -78,9 +77,8 @@ export default function Sidebar({
               key={id}
               type="button"
               onClick={() => onViewChange(id)}
-              className={`relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 text-[10px] transition ${
-                active ? "text-primary" : "text-slate-400"
-              }`}
+              className={`relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 text-[10px] transition ${active ? "text-primary" : "text-slate-400"
+                }`}
               aria-label={label}
             >
               <Icon className={`h-5 w-5 ${active ? "stroke-[2.5]" : ""}`} />
@@ -92,8 +90,8 @@ export default function Sidebar({
 
       <div
         className={`fixed inset-0 z-40 hidden bg-black/40 transition-opacity duration-300 sm:block lg:hidden ${isOpen
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
+          ? "opacity-100 pointer-events-auto"
+          : "opacity-0 pointer-events-none"
           }`}
         onClick={onClose}
       />

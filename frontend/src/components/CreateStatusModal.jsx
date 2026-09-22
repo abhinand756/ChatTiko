@@ -1,11 +1,11 @@
 import { useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, ImagePlus, Smile, Loader2 } from "lucide-react";
+import { X, ImagePlus, Loader2 } from "lucide-react";
 
 const BACKGROUNDS = [
   "#7c3aed", "#4f46e5", "#0ea5e9", "#059669", "#e11d48",
-  "#d97706", "#0f172a", "#be185d", "#1e3a8a", "#334155",
+  "#d97706", "#0f172a", "#be185d", "#1e3a8a", "#334155", "#f2ff00",
 ];
 
 export default function CreateStatusModal({ isOpen, onClose, onCreate, saving = false }) {
@@ -129,17 +129,13 @@ export default function CreateStatusModal({ isOpen, onClose, onCreate, saving = 
                   key={color}
                   type="button"
                   onClick={() => setBackground(color)}
-                  className={`h-7 w-7 rounded-full transition ${
-                    background === color
+                  className={`h-6 w-6 rounded-full transition ${background === color
                       ? "ring-2 ring-white ring-offset-2 ring-offset-[#0f1428]"
                       : "hover:scale-110"
-                  }`}
+                    }`}
                   style={{ background: color }}
                 />
               ))}
-              <span className="ml-1 flex items-center gap-1 text-[11px] text-slate-500">
-                <Smile className="h-3.5 w-3.5" /> Backdrop
-              </span>
             </div>
 
             <button

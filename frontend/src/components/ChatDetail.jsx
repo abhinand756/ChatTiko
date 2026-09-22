@@ -501,6 +501,7 @@ export default function ChatDetail({
     ...(isGroup
       ? [{ key: "groupinfo", label: "Group Info", Icon: Info }]
       : [{ key: "contactinfo", label: "View Contact", Icon: Info }]),
+    { key: "search", label: "Search in chat", Icon: Search },
     {
       key: "mute",
       label: conversationSettings.muted ? "Unmute notifications" : "Mute notifications",
@@ -517,7 +518,10 @@ export default function ChatDetail({
     setHeaderMenu(null);
     if (key === "groupinfo") onGroupInfo?.();
     else if (key === "contactinfo") setShowContactInfo(true);
-    else if (key === "mute")
+    else if (key === "search") {
+      setSearchQuery("");
+      setSearchOpen(true);
+    } else if (key === "mute")
       onUpdateConvSettings?.({ muted: !conversationSettings.muted });
     else if (key === "disappearing") setHeaderMenu("disappearing");
     else if (key === "wallpaper") setHeaderMenu("wallpaper");
@@ -650,13 +654,13 @@ export default function ChatDetail({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-10 border-b border-white/10 bg-[#080c1a]/95 p-2 shadow-[0_1px_0_rgba(255,255,255,.03)] backdrop-blur-xl sm:p-3">
+      <div className="sticky top-0 z-10 border-b border-white/10 bg-[#080c1a]/95 px-2 py-3 shadow-[0_1px_0_rgba(255,255,255,.03)] backdrop-blur-xl sm:p-3">
         <div className="flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex min-w-0 items-center gap-2">
             <button
               type="button"
               onClick={onBack}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-[14px] border border-white/5 bg-white/[0.06] text-white transition hover:bg-white/10 lg:hidden sm:h-11 sm:w-11"
+              className="inline-flex h-10 w-6 items-center justify-center text-white lg:hidden sm:h-11 sm:w-11"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -672,14 +676,18 @@ export default function ChatDetail({
                 displayName.charAt(0).toUpperCase()
               )}
             </button>
-            <div className="min-w-0">
-              <h2 className="truncate text-base font-semibold capitalize text-white sm:text-[18px]">
-                {displayName}
-              </h2>
+            <button
+              type="button"
+              onClick={isGroup ? onGroupInfo : undefined}
+              className={`min-w-0 text-left ${isGroup ? "flex-1 cursor-pointer transition hover:opacity-90" : ""}`}
+            >
+              <div className="min-w-0">
+                <h2 className="truncate text-base font-semibold capitalize text-white sm:text-[18px]">
+                  {displayName}
+                </h2>
               {isGroup ? (
                 <p className="truncate text-sm capitalize text-indigo-300">
                   {group?.members?.length || 0} members
-                  {group?.description ? ` • ${group.description}` : ""}
                 </p>
               ) : isTyping ? (
                 <p className="text-sm capitalize text-primary">
@@ -692,21 +700,11 @@ export default function ChatDetail({
                   <span className="mb-[0.5px] inline-block h-[6px] w-[6px] animate-pulse rounded-full bg-green-400"></span>
                 </p>
               )}
-            </div>
+              </div>
+            </button>
           </div>
 
           <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setSearchOpen((v) => !v);
-                setSearchQuery("");
-              }}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-[12px] border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-10 sm:w-10"
-              title="Search in chat"
-            >
-              <Search className="h-4 w-4" />
-            </button>
             {!isSelf && !isGroup && (
               <>
                 <button
@@ -720,7 +718,7 @@ export default function ChatDetail({
                 <button
                   type="button"
                   onClick={() => onStartCall?.(selectedChat, "video")}
-                  className="hidden h-9 w-9 items-center justify-center rounded-[12px] border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10 hover:text-white sm:inline-flex sm:h-10 sm:w-10"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-[12px] border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10 hover:text-white sm:h-10 sm:w-10"
                   title="Video Call"
                 >
                   <Video className="h-4 w-4" />
@@ -1363,7 +1361,7 @@ export default function ChatDetail({
             exit={{ opacity: 0 }}
             onClick={() => setShowContactPicker(false)}
             className="fixed inset-0 z-[70] flex items-center justify-center p-4"
-            style={{ background: "rgba(4,6,20,0.8)", backdropFilter: "blur(10px)" }}
+            style={{ background: "rgba(4,6,20,0.2)", backdropFilter: "blur(10px)" }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 16 }}
@@ -1453,7 +1451,7 @@ export default function ChatDetail({
             exit={{ opacity: 0 }}
             onClick={() => setShowStarred(false)}
             className="fixed inset-0 z-[70] flex items-center justify-center p-4"
-            style={{ background: "rgba(4,6,20,0.8)", backdropFilter: "blur(10px)" }}
+            style={{ background: "rgba(4,6,20,0.2)", backdropFilter: "blur(10px)" }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 16 }}
@@ -1554,7 +1552,7 @@ export default function ChatDetail({
             exit={{ opacity: 0 }}
             onClick={() => setShowContactInfo(false)}
             className="fixed inset-0 z-[70] flex items-center justify-center p-4"
-            style={{ background: "rgba(4,6,20,0.8)", backdropFilter: "blur(10px)" }}
+            style={{ background: "rgba(4,6,20,0.2)", backdropFilter: "blur(10px)" }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 16 }}

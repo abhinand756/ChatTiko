@@ -24,6 +24,7 @@ import CallOverlay from "./components/CallOverlay";
 import CreateGroupModal from "./components/CreateGroupModal";
 import GroupInfoModal from "./components/GroupInfoModal";
 import ToastHost from "./components/Toast";
+import DetailPage from "./components/DetailPage";
 
 import { useUsers } from "./hooks/useUsers";
 import { useProfile } from "./hooks/useProfile";
@@ -96,6 +97,7 @@ function App() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [profileEditingField, setProfileEditingField] = useState(null);
+  const [showProfileDetail, setShowProfileDetail] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
@@ -1010,6 +1012,8 @@ function App() {
       } else if (n?.type === "call" && n?.from) {
         setView("calls");
         setSelectedItemId(null);
+      } else {
+        setSelectedItemId(n?.id || null);
       }
     },
     [markNotificationRead, handleSelectUser],
@@ -1363,13 +1367,6 @@ function App() {
     [reloadStatuses],
   );
 
-  const handleStatusSelect = useCallback(
-    (ownerId) => {
-      setSelectedStatusUser(ownerId);
-    },
-    [],
-  );
-
   const handleViewStatus = useCallback(
     (ownerId, index = 0) => {
       const ownerStatuses = statuses.filter(
@@ -1384,6 +1381,18 @@ function App() {
       });
     },
     [statuses],
+  );
+
+  const handleStatusSelect = useCallback(
+    (ownerId) => {
+      if (String(ownerId) === String(userId)) {
+        setSelectedStatusUser(ownerId);
+      } else {
+        setSelectedStatusUser(null);
+        handleViewStatus(ownerId, 0);
+      }
+    },
+    [userId, handleViewStatus],
   );
 
   const handleStatusReact = useCallback(
@@ -1529,10 +1538,7 @@ function App() {
         />
         {view === "chats" ? (
           <>
-            <div
-              className={`${activeChatId ? "hidden lg:flex" : "flex"
-                } w-full flex-col border-r border-white/10 bg-[#090b16] lg:w-[360px]`}
-            >
+            <div className="flex w-full flex-col border-r border-white/10 bg-[#090b16] lg:w-[360px]">
               <ConnectTabs
                 panelView={panelView}
                 setPanelView={setPanelView}
@@ -1553,10 +1559,7 @@ function App() {
                 onUnblock={onUnblockUser}
               />
             </div>
-            <div
-              className={`${activeChatId ? "flex" : "hidden lg:flex"
-                } flex-1 flex-col`}
-            >
+            <DetailPage active={!!activeChatId} className="bg-[#090b16]">
               <ChatDetail
                 selectedChat={activeChatId}
                 userId={userId}
@@ -1631,7 +1634,7 @@ function App() {
                 exportChat={exportChat}
                 onScheduleMessage={handleScheduleMessage}
               />
-            </div>
+            </DetailPage>
           </>
         ) : view === "status" ? (
           <>
@@ -1648,7 +1651,7 @@ function App() {
                 onOpenSidebar={() => setIsMobileSidebarOpen(true)}
               />
             </div>
-            <div className="hidden flex-1 flex-col bg-[#070a15] lg:flex">
+            <DetailPage active={!!activeStatusGroup} className="bg-[#070a15]">
               {activeStatusGroup ? (
                 <StatusDetail
                   group={activeStatusGroup}
@@ -1657,6 +1660,7 @@ function App() {
                   allUsers={allUsers}
                   onlineUsers={onlineUsers}
                   callerId={userId}
+                  onOpenSidebar={() => setIsMobileSidebarOpen(true)}
                   onViewStatus={(index = 0) =>
                     handleViewStatus(activeStatusUser, index)
                   }
@@ -1668,6 +1672,10 @@ function App() {
                     handleSelectUser(id);
                   }}
                   onBack={() => setSelectedStatusUser(null)}
+                  userAvatar={profile?.avatar ? resolveMediaUrl(profile.avatar) : ""}
+                  unreadCount={notifications.filter((n) => !n.read).length}
+                  onOpenNotifications={() => setView("notifications")}
+                  onOpenProfile={() => setView("profile")}
                 />
               ) : (
                 <div className="flex flex-1 flex-col items-center justify-center scrollbar-none overflow-y-auto px-10 py-8 text-center">
@@ -1772,11 +1780,11 @@ function App() {
                   </div>
                 </div>
               )}
-            </div>
+            </DetailPage>
           </>
         ) : view === "profile" ? (
           <>
-            <div className="hidden w-[360px] flex-col border-r border-white/10 bg-[#090b16] lg:flex">
+            <div className="flex w-full flex-col border-r border-white/10 bg-[#090b16] lg:w-[360px]">
               <ProfileScreen
                 userId={userId}
                 profile={profile}
@@ -1787,9 +1795,13 @@ function App() {
                 editingField={profileEditingField}
                 onSelectEdit={setProfileEditingField}
                 onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+                onViewProfile={() => setShowProfileDetail(true)}
               />
             </div>
-            <div className="flex flex-1 flex-col">
+            <DetailPage
+              active={showProfileDetail}
+              className="bg-[#070a15]"
+            >
               <ProfileDetail
                 userId={userId}
                 profile={profile}
@@ -1799,8 +1811,9 @@ function App() {
                 onEdit={(field) => setProfileEditingField(field)}
                 friendsCount={otherConversations.length}
                 onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+                onBack={() => setShowProfileDetail(false)}
               />
-            </div>
+            </DetailPage>
           </>
         ) : (
           <>
@@ -1842,7 +1855,7 @@ function App() {
                 />
               )}
             </div>
-            <div className="hidden flex-1 flex-col lg:flex">
+            <DetailPage active={!!selectedItemId}>
               {view === "calls" && (
                 <CallsDetail
                   selectedId={selectedItemId}
@@ -1854,10 +1867,7 @@ function App() {
                     setView("chats");
                     handleSelectUser(id);
                   }}
-                  onBack={(itemId) => {
-                    if (itemId) setSelectedItemId(itemId);
-                    else setSelectedItemId(null);
-                  }}
+                  onBack={() => setSelectedItemId(null)}
                 />
               )}
               {view === "notifications" && (
@@ -1870,10 +1880,7 @@ function App() {
               {view === "settings" && (
                 <SettingsDetail
                   selectedId={selectedItemId}
-                  onBack={(itemId) => {
-                    if (itemId) setSelectedItemId(itemId);
-                    else setSelectedItemId(null);
-                  }}
+                  onBack={() => setSelectedItemId(null)}
                   onNavigate={(itemId) => setSelectedItemId(itemId)}
                   prefs={prefs}
                   onTogglePref={onTogglePref}
@@ -1882,7 +1889,7 @@ function App() {
                   onChangePassword={onChangePassword}
                 />
               )}
-            </div>
+            </DetailPage>
           </>
         )}
       </div>
